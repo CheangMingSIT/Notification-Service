@@ -1,10 +1,8 @@
 import { Module } from '@nestjs/common';
-import { WorkerServiceController } from './worker-service.controller';
-import { WorkerServiceService } from './worker-service.service';
+import { EmailWsModule } from './modules/email-ws/email-ws.module';
+import { SmsWsModule } from './modules/sms-ws/sms-ws.module';
 
 @Module({
-  imports: [],
-  controllers: [WorkerServiceController],
-  providers: [WorkerServiceService],
+    imports: [EmailWsModule, SmsWsModule],
 })
 export class WorkerServiceModule {}

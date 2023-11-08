@@ -2,5 +2,5 @@ POST http://localhost:5000/api/v1/notification-api/email
 content-type: application/json
 
 {
-    "message": "NI HAO MA"
+    "message": "Test"
 }
