@@ -8,15 +8,6 @@
     "tsConfigPath": "apps/notification-api/tsconfig.app.json"
   },
   "projects": {
-    "common": {
-      "type": "library",
-      "root": "libs/common",
-      "entryFile": "index",
-      "sourceRoot": "libs/common/src",
-      "compilerOptions": {
-        "tsConfigPath": "libs/common/tsconfig.lib.json"
-      }
-    },
     "notification-api": {
       "type": "application",
       "root": "apps/notification-api",
@@ -26,15 +17,6 @@
         "tsConfigPath": "apps/notification-api/tsconfig.app.json"
       }
     },
-    "message-queue": {
-      "type": "application",
-      "root": "apps/message-queue",
-      "entryFile": "main",
-      "sourceRoot": "apps/message-queue/src",
-      "compilerOptions": {
-        "tsConfigPath": "apps/message-queue/tsconfig.app.json"
-      }
-    },
     "worker-service": {
       "type": "application",
       "root": "apps/worker-service",
@@ -42,6 +24,15 @@
       "sourceRoot": "apps/worker-service/src",
       "compilerOptions": {
         "tsConfigPath": "apps/worker-service/tsconfig.app.json"
+      }
+    },
+    "common": {
+      "type": "library",
+      "root": "libs/common",
+      "entryFile": "index",
+      "sourceRoot": "libs/common/src",
+      "compilerOptions": {
+        "tsConfigPath": "libs/common/tsconfig.lib.json"
       }
     }
   },
