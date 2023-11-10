@@ -1,6 +1,26 @@
+### Email
 POST http://localhost:5000/api/v1/notification-api/email 
 content-type: application/json
 
 {
-    "message": "Test"
+    "id": 1,
+    "date": "2021-07-23",
+    "from": "Jameslee@gmail.com",
+    "to": "CM@gmail.com",
+    "cc": "hello",
+    "bcc": "hello",
+    "subject": "abuse",
+    "body": "hello",
+    "template": 1
+}
+### SMS
+POST http://localhost:5000/api/v1/notification-api/SMS 
+content-type: application/json
+
+{
+    "id": 1,
+    "timestamp": "2021-07-23",
+    "sender": "CM",
+    "recipient": "Jameslee",
+    "message": "abuse of power"
 }

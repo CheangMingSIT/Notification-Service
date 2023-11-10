@@ -9,8 +9,17 @@ export class SmsApiController {
     constructor(private readonly smsApiService: SmsApiService) {}
 
     @Post('/SMS')
-    sendSMS(@Body() body: any) {
-        const acknowledgement = this.smsApiService.sendSMS(body.message);
+    sendSMS(
+        @Body()
+        body: {
+            id: number;
+            timestamp: Date;
+            sender: string;
+            recipient: string;
+            message: string;
+        },
+    ) {
+        const acknowledgement = this.smsApiService.publishSMS(body);
         return acknowledgement;
     }
 }

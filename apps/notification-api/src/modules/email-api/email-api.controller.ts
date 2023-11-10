@@ -9,8 +9,20 @@ export class EmailApiController {
     constructor(private readonly emailApiService: EmailApiService) {}
 
     @Post('/email')
-    sendEmail(@Body() body: any) {
-        const acknowledgement = this.emailApiService.sendEmail(body.message);
-        return acknowledgement;
+    publishEmail(
+        @Body()
+        body: {
+            id: number;
+            date: Date;
+            from: string;
+            to: string;
+            cc: string;
+            bcc: string;
+            subject: string;
+            body: string;
+            template: number;
+        },
+    ) {
+        return this.emailApiService.publishEmail(body);
     }
 }

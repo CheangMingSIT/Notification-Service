@@ -1,17 +1,19 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
-
-import { SMS_SERVICE, sms } from '@app/common';
+import { RK_NOTIFICATION_SMS } from '@app/common';
+import { RabbitmqService } from '@app/common/rabbit-mq/rabbit-mq.service';
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class SmsApiService {
-    constructor(
-        @Inject(SMS_SERVICE)
-        private readonly smsService: ClientProxy,
-    ) {}
+    constructor(private readonly rabbitMQService: RabbitmqService) {}
 
-    sendSMS(message: string) {
-        this.smsService.emit(sms, message);
-        return message;
+    async publishSMS(body: {
+        id: number;
+        timestamp: Date;
+        sender: string;
+        recipient: string;
+        message: string;
+    }) {
+        await this.rabbitMQService.publish(RK_NOTIFICATION_SMS, body);
+        return 'sending SMS....';
     }
 }

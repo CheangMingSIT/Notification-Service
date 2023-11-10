@@ -1,3 +1,2 @@
-export * from './services';
-export * from './notification-api-v1';
-export * from './event-pattern';
+export * from './notification-api-version';
+export * from './notification-rabbitmq';
