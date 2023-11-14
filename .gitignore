@@ -35,4 +35,4 @@ lerna-debug.log*
 !.vscode/extensions.json
 
 # misc
-apps/notification-api/src/request.http
+/apps/notification-api/src/request.http
