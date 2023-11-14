@@ -3,24 +3,20 @@ POST http://localhost:5000/api/v1/notification-api/email
 content-type: application/json
 
 {
-    "id": 1,
-    "date": "2021-07-23",
     "from": "Jameslee@gmail.com",
     "to": "CM@gmail.com",
-    "cc": "hello",
-    "bcc": "hello",
-    "subject": "abuse",
-    "body": "hello",
-    "template": 1
+    "cc": "dacheng@gmail.com",
+    "bcc": "titusLow@gmail.com",
+    "subject": "promotion!",
+    "body": "Salary increment to 1 million dollar",
+    "template": 3
 }
 ### SMS
 POST http://localhost:5000/api/v1/notification-api/SMS 
 content-type: application/json
 
 {
-    "id": 1,
-    "timestamp": "2021-07-23",
-    "sender": "CM",
-    "recipient": "Jameslee",
+    "sender": "92208810",
+    "recipient": "+6592208810",
     "message": "abuse of power"
 }

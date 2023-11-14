@@ -1,28 +1,26 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Post, UseFilters } from '@nestjs/common';
 
 import { EmailApiService } from './email-api.service';
 
 import { NOTIFICATIONAPI } from '@app/common';
+import { email, emailInputDto } from './dtos/email-api.dto';
+import { HttpExceptionFilter } from '../../http-exception.filter';
 
 @Controller(NOTIFICATIONAPI)
 export class EmailApiController {
     constructor(private readonly emailApiService: EmailApiService) {}
 
     @Post('/email')
-    publishEmail(
-        @Body()
-        body: {
-            id: number;
-            date: Date;
-            from: string;
-            to: string;
-            cc: string;
-            bcc: string;
-            subject: string;
-            body: string;
-            template: number;
-        },
-    ) {
-        return this.emailApiService.publishEmail(body);
+    @UseFilters(HttpExceptionFilter)
+    async publishEmail(
+        @Body() body: emailInputDto,
+    ): Promise<{ success: boolean; message: string }> {
+        const timestamp = new Date();
+        const email: email = { ...body, timestamp };
+        await this.emailApiService.publishEmail(email);
+        return {
+            success: true,
+            message: 'Email added to the queue successfully',
+        };
     }
 }
