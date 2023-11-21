@@ -16,5 +16,6 @@ export class smsInputDto {
 
 export class sms extends smsInputDto {
     @IsDate()
+    @IsNotEmpty()
     timestamp: Date;
 }

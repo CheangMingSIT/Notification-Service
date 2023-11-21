@@ -9,6 +9,6 @@ export class EmailApiService {
 
     async publishEmail(body: email) {
         await this.rabbitMQService.publish(RK_NOTIFICATION_EMAIL, body);
-        return 'sending email....';
+        return 'sending email....'; 
     }
 }

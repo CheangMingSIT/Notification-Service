@@ -6,9 +6,13 @@ import {
     EX_NOTIFICATION,
     RK_NOTIFICATION_EMAIL,
     RK_NOTIFICATION_SMS,
+    DLX_EXCHANGE,
+    DLQ_SMS,
+    DLQ_EMAIL,
 } from '../constants';
 @Injectable()
 export class RabbitmqService implements OnModuleInit {
+    // Queue Service interface
     private channel: ChannelWrapper;
 
     async onModuleInit() {
@@ -30,11 +34,52 @@ export class RabbitmqService implements OnModuleInit {
     }
 
     private async setupRabbitMQ(channel) {
+        await channel.deleteQueue(QUEUE_SMS);
+        await channel.deleteQueue(QUEUE_EMAIL);
+        await channel.deleteQueue(DLQ_SMS);
+        await channel.deleteQueue(DLQ_EMAIL);
         await channel.assertExchange(EX_NOTIFICATION, 'direct', {
             durable: true,
         });
-        await channel.assertQueue(QUEUE_SMS, { durable: true });
-        await channel.assertQueue(QUEUE_EMAIL, { durable: true });
+        await channel.assertQueue(QUEUE_SMS, {
+            durable: true,
+            arguments: {
+                'x-queue-type': 'quorum',
+                'x-message-ttl': 100000,
+                'x-dead-letter-exchange': DLX_EXCHANGE,
+                'x-dead-letter-routing-key': RK_NOTIFICATION_SMS,
+                'x-delivery-limit': 5,
+            },
+            function(err, ok) {
+                if (err) {
+                    console.log(err);
+                }
+                console.log(ok);
+            },
+        });
+        await channel.assertQueue(QUEUE_EMAIL, {
+            durable: true,
+            arguments: {
+                'x-queue-type': 'quorum',
+                'x-message-ttl': 100000,
+                'x-dead-letter-exchange': DLX_EXCHANGE,
+                'x-dead-letter-routing-key': RK_NOTIFICATION_EMAIL,
+                'x-delivery-limit': 5,
+            },
+            function(err, ok) {
+                if (err) {
+                    console.log(err);
+                }
+                console.log(ok);
+            },
+        });
+
+        await channel.assertExchange(DLX_EXCHANGE, 'direct', {
+            durable: true,
+        });
+        await channel.assertQueue(DLQ_SMS, { durable: true });
+        await channel.assertQueue(DLQ_EMAIL, { durable: true });
+
         await channel.bindQueue(
             QUEUE_SMS,
             EX_NOTIFICATION,
@@ -45,6 +90,9 @@ export class RabbitmqService implements OnModuleInit {
             EX_NOTIFICATION,
             RK_NOTIFICATION_EMAIL,
         );
+
+        await channel.bindQueue(DLQ_SMS, DLX_EXCHANGE, RK_NOTIFICATION_SMS);
+        await channel.bindQueue(DLQ_EMAIL, DLX_EXCHANGE, RK_NOTIFICATION_EMAIL);
     }
 
     public async publish(routingkey: string, message: any) {
