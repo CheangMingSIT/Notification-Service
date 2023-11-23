@@ -34,10 +34,6 @@ export class RabbitmqService implements OnModuleInit {
     }
 
     private async setupRabbitMQ(channel) {
-        await channel.deleteQueue(QUEUE_SMS);
-        await channel.deleteQueue(QUEUE_EMAIL);
-        await channel.deleteQueue(DLQ_SMS);
-        await channel.deleteQueue(DLQ_EMAIL);
         await channel.assertExchange(EX_NOTIFICATION, 'direct', {
             durable: true,
         });

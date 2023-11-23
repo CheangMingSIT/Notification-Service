@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { EmailWsModule } from './modules/email-ws/email-ws.module';
-import { SmsWsModule } from './modules/sms-ws/sms-ws.module';
+import { WsModule } from './modules/ws/ws.module';
+
 
 @Module({
-    imports: [EmailWsModule, SmsWsModule],
+    imports: [WsModule],
 })
 export class WorkerServiceModule {}

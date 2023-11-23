@@ -9,7 +9,7 @@ import { NOTIFICATIONAPI } from '@app/common';
 
 @Controller(NOTIFICATIONAPI)
 export class SmsApiController {
-    constructor(private readonly smsApiService: SmsApiService) {}
+    constructor(private readonly smsApiService: SmsApiService) { }
 
     @Post('/SMS')
     @UseFilters(HttpExceptionFilter)
@@ -23,5 +23,6 @@ export class SmsApiController {
             success: true,
             message: 'SMS added to the queue successfully',
         };
+
     }
 }

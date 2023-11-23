@@ -8,10 +8,10 @@ export class smsInputDto {
     @IsNotEmpty()
     @IsPhoneNumber('SG', { message: 'recipient must be a valid phone number' })
     recipient: string;
-
+ 
     @IsNotEmpty()
     @IsString()
-    message: string;
+    body: string;
 }
 
 export class sms extends smsInputDto {
