@@ -36,8 +36,3 @@ export class emailInputDto {
     @IsOptional()
     template: number;
 }
-
-export class email extends emailInputDto {
-    @IsDate()
-    timestamp: Date;
-}

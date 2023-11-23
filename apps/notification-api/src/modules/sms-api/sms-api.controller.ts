@@ -1,10 +1,8 @@
 import { Body, Controller, Post, UseFilters } from '@nestjs/common';
 
-import { sms, smsInputDto } from './dtos/sms.dto';
+import { smsInputDto } from './dtos/sms.dto';
 import { SmsApiService } from './sms-api.service';
 import { HttpExceptionFilter } from '../../http-exception.filter';
-
-//library/common
 import { NOTIFICATIONAPI } from '@app/common';
 
 @Controller(NOTIFICATIONAPI)
@@ -15,13 +13,11 @@ export class SmsApiController {
     @UseFilters(HttpExceptionFilter)
     async sendSMS(
         @Body() body: smsInputDto,
-    ): Promise<{ success: boolean; message: string }> {
-        const timestamp = new Date();
-        const sms: sms = { ...body, timestamp };
-        await this.smsApiService.publishSMS(sms);
+    ): Promise<{ success: string; message: string }> {
+        const response = await this.smsApiService.publishSMS(body);
         return {
-            success: true,
-            message: 'SMS added to the queue successfully',
+            success: response.response,
+            message: response.message,
         };
 
     }

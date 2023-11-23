@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsDate, IsPhoneNumber } from 'class-validator';
+import { IsNotEmpty, IsString, IsDate, IsPhoneNumber, IsNumber } from 'class-validator';
 
 export class smsInputDto {
     @IsNotEmpty()
@@ -12,10 +12,8 @@ export class smsInputDto {
     @IsNotEmpty()
     @IsString()
     body: string;
-}
 
-export class sms extends smsInputDto {
-    @IsDate()
     @IsNotEmpty()
-    timestamp: Date;
+    @IsNumber()
+    template: number;
 }
