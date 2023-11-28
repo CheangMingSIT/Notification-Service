@@ -1,10 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { v4 as uuidv4 } from 'uuid';
 
 import { NotificationLog, RK_NOTIFICATION_SMS } from '@app/common';
 import { smsInputDto } from './dtos/sms.dto';
 import { RabbitmqService } from '@app/common/rabbit-mq/rabbit-mq.service';
+
+interface smsLog {
+    uuid: string;
+    channel: string;
+    status: string;
+    message: string;
+    sender: string;
+    recipient: string[];
+    scheduleDate: Date;
+    templateId: number;
+}
 
 @Injectable()
 export class SmsApiService {
@@ -14,29 +26,40 @@ export class SmsApiService {
         private notificationLogModel: Model<NotificationLog>,
     ) {}
     async publishSMS(body: smsInputDto) {
-        const response = await this.rabbitMQService.publish(RK_NOTIFICATION_SMS, body);
-        console.log(response)
-        const timestamp = new Date();
-        const payload = {
-            message_type: 'sms',
-            status: 'pending',
-            message: body.body,
-            sender: body.sender,
-            recipient: body.recipient,
-            scheduled_date: timestamp,
-            template_id: body.template,
-        };
-        const notificationLog = new this.notificationLogModel(payload);
-        await notificationLog.save();
-        if (response === false) {
-            return {
-                response: 'fail',
-                message: 'failed to add SMS to the queue',
+        let uuid = uuidv4();
+        const payload = { uuid, ...body };
+        try {
+            const response = await this.rabbitMQService.publish(
+                RK_NOTIFICATION_SMS,
+                payload,
+            );
+            const log: smsLog = {
+                uuid: uuid,
+                channel: 'SMS',
+                status: response === true ? 'PENDING' : 'FAIL',
+                message: body.body,
+                sender: body.sender,
+                recipient: [...body.recipient],
+                scheduleDate: new Date(),
+                templateId: body.template,
             };
+            const notificationLog = new this.notificationLogModel(log);
+            await notificationLog.save();
+
+            if (response === false) {
+                return {
+                    response: 'fail',
+                    message: 'SMS failed to add to the queue',
+                };
+            }
+
+            return {
+                response: 'true',
+                message: 'SMS added to the queue successfully',
+            };
+        } catch (error) {
+            console.error(error);
+            return error;
         }
-        return {
-            response: 'true',
-            message: 'SMS added to the queue successfully',
-        };
     }
 }

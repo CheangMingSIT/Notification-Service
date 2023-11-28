@@ -2,30 +2,31 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
 @Schema()
-export class NotificationLog extends Document{
-    @Prop()
-    id: string;
+export class NotificationLog extends Document {
+    @Prop({ type: String })
+    uuid: string;
 
     @Prop()
-    message_type: string;
+    channel: string;
 
     @Prop()
     status: string;
 
-    @Prop()
+    @Prop({ type: Buffer })
     message: Buffer;
 
     @Prop()
     sender: string;
 
-    @Prop() 
-    recipient: string;
+    @Prop([Object])
+    recipient: Object[];
 
     @Prop()
-    scheduled_date: Date;
+    scheduleDate: Date;
 
     @Prop()
-    template_id: number;
+    templateId: number;
 }
 
-export const NotificationLogSchema = SchemaFactory.createForClass(NotificationLog);
+export const NotificationLogSchema =
+    SchemaFactory.createForClass(NotificationLog);

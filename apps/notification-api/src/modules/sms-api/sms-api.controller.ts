@@ -7,18 +7,18 @@ import { NOTIFICATIONAPI } from '@app/common';
 
 @Controller(NOTIFICATIONAPI)
 export class SmsApiController {
-    constructor(private readonly smsApiService: SmsApiService) { }
+    constructor(private readonly smsApiService: SmsApiService) {}
 
     @Post('/SMS')
     @UseFilters(HttpExceptionFilter)
     async sendSMS(
         @Body() body: smsInputDto,
     ): Promise<{ success: string; message: string }> {
+        console.log('controllerSMS: ' + JSON.stringify(body));
         const response = await this.smsApiService.publishSMS(body);
         return {
             success: response.response,
             message: response.message,
         };
-
     }
 }

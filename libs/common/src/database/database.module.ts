@@ -1,11 +1,14 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
+import { mongooseConfigAsync } from '../config';
 
 @Module({
     imports: [
-        MongooseModule.forRoot(
-            'mongodb://localhost:27017/notificationService'
-        ),
+        ConfigModule.forRoot({
+            isGlobal: true,
+        }),
+        MongooseModule.forRootAsync(mongooseConfigAsync),
     ],
     exports: [MongooseModule],
 })

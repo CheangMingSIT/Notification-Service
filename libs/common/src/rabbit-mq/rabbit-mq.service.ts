@@ -1,5 +1,9 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { connect, ChannelWrapper } from 'amqp-connection-manager';
+import {
+    connect,
+    ChannelWrapper,
+    AmqpConnectionManager,
+} from 'amqp-connection-manager';
 import {
     QUEUE_EMAIL,
     QUEUE_SMS,
@@ -10,26 +14,31 @@ import {
     DLQ_SMS,
     DLQ_EMAIL,
 } from '../constants';
+
 @Injectable()
 export class RabbitmqService implements OnModuleInit {
     // Queue Service interface
     private channel: ChannelWrapper;
+    private connection;
 
     async onModuleInit() {
         console.log('Initializing RabbitMQ...');
-        const connection = connect(['amqp://localhost:5673']);
+        this.connection = connect(['amqp://localhost:5673']);
+        this.connection.on('connect', () => {
+            console.log('Connection to RabbitMQ up!');
+        });
 
-        this.channel = connection.createChannel({
+        this.connection.on('disconnect', (err) => {
+            console.error(err);
+        });
+
+        this.connection.on('connectFailed', (err) => {
+            console.error(err);
+        });
+
+        this.channel = this.connection.createChannel({
             json: true,
             setup: async (channel) => await this.setupRabbitMQ(channel),
-        });
-
-        connection.on('close', () => {
-            console.warn('Connection to RabbitMQ closed!');
-        });
-
-        connection.on('error', (err) => {
-            console.error('Error in RabbitMQ connection:', err);
         });
     }
 
@@ -46,12 +55,6 @@ export class RabbitmqService implements OnModuleInit {
                 'x-dead-letter-routing-key': RK_NOTIFICATION_SMS,
                 'x-delivery-limit': 5,
             },
-            function(err, ok) {
-                if (err) {
-                    console.log(err);
-                }
-                console.log(ok);
-            },
         });
         await channel.assertQueue(QUEUE_EMAIL, {
             durable: true,
@@ -61,12 +64,6 @@ export class RabbitmqService implements OnModuleInit {
                 'x-dead-letter-exchange': DLX_EXCHANGE,
                 'x-dead-letter-routing-key': RK_NOTIFICATION_EMAIL,
                 'x-delivery-limit': 5,
-            },
-            function(err, ok) {
-                if (err) {
-                    console.log(err);
-                }
-                console.log(ok);
             },
         });
 
@@ -91,12 +88,17 @@ export class RabbitmqService implements OnModuleInit {
         await channel.bindQueue(DLQ_EMAIL, DLX_EXCHANGE, RK_NOTIFICATION_EMAIL);
     }
 
-    public async publish(routingkey: string, message: any) {
-        return await this.channel.publish(
-            EX_NOTIFICATION,
-            routingkey,
-            Buffer.from(JSON.stringify(message)),
-        );
+    public publish(routingkey: string, message: any) {
+        try {
+            return this.channel.publish(
+                EX_NOTIFICATION,
+                routingkey,
+                Buffer.from(JSON.stringify(message)),
+            );
+        } catch (error) {
+            console.error(error);
+            return false;
+        }
     }
 
     public async subscribe(queue: string, onMessage: (msg) => void) {

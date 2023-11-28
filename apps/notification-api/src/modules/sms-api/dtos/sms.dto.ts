@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsString, IsDate, IsPhoneNumber, IsNumber } from 'class-validator';
+import {
+    IsNotEmpty,
+    IsString,
+    IsDate,
+    IsPhoneNumber,
+    IsArray,
+    IsNumberString,
+} from 'class-validator';
 
 export class smsInputDto {
     @IsNotEmpty()
@@ -6,14 +13,18 @@ export class smsInputDto {
     sender: string;
 
     @IsNotEmpty()
-    @IsPhoneNumber('SG', { message: 'recipient must be a valid phone number' })
-    recipient: string;
- 
+    @IsArray()
+    @IsPhoneNumber('SG', {
+        message: 'recipient must be a valid phone number',
+        each: true,
+    })
+    recipient: string[];
+
     @IsNotEmpty()
     @IsString()
     body: string;
 
     @IsNotEmpty()
-    @IsNumber()
+    @IsNumberString()
     template: number;
 }

@@ -36,3 +36,4 @@ lerna-debug.log*
 
 # misc
 /apps/notification-api/src/request.http
+pnpm-lock.yaml

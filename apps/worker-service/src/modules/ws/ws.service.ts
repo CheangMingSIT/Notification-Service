@@ -1,15 +1,21 @@
-import { QUEUE_EMAIL, QUEUE_SMS } from '@app/common';
-import { RabbitmqService } from '@app/common/rabbit-mq/rabbit-mq.service';
+import { NotificationLog, QUEUE_EMAIL, QUEUE_SMS } from '@app/common';
+import { RabbitmqService } from '@app/common/rabbit-mq';
+
 import { Injectable, OnModuleInit } from '@nestjs/common';
-import { MailerService } from '@nestjs-modules/mailer'
-import e from 'express';
+import { MailerService } from '@nestjs-modules/mailer';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 
 @Injectable()
 export class WsService implements OnModuleInit {
-    constructor(private readonly rabbitMQService: RabbitmqService, private mailerService: MailerService) { }
+    constructor(
+        private readonly rabbitMQService: RabbitmqService,
+        private mailerService: MailerService,
+        @InjectModel(NotificationLog.name)
+        private notificationLogModel: Model<NotificationLog>,
+    ) {}
 
     async onModuleInit() {
-
         await this.rabbitMQService.subscribe(
             QUEUE_EMAIL,
             this.handleEmailMessage.bind(this),
@@ -21,46 +27,81 @@ export class WsService implements OnModuleInit {
         );
     }
 
-    private async handleEmailMessage(emailMessage: any) {
-        const message = {
-            from: emailMessage.from,
-            to: emailMessage.to,
-            subject: emailMessage.subject,
-            text: emailMessage.body,
-        }
+    private async updateStatus(uuid: string, status: string) {
+        return await this.notificationLogModel.updateOne(
+            {
+                uuid: uuid,
+            },
+            {
+                $set: { status: status },
+            },
+        );
+    }
 
-        if (emailMessage.cc) {
-            message["cc"] = emailMessage.cc
+    private async handleEmailMessage(emailPayload: any) {
+        const payload = {
+            from: emailPayload.from,
+            to: emailPayload.to,
+            subject: emailPayload.subject,
+            text: emailPayload.body,
+        };
+        if (emailPayload.cc) {
+            payload['cc'] = emailPayload.cc;
+        }
+        if (emailPayload.file !== undefined) {
+            payload['attachments'] = [
+                {
+                    filename: emailPayload.file.originalname,
+                    content: Buffer.from(emailPayload.file.buffer).toString(
+                        'base64',
+                    ),
+                    encoding: 'base64',
+                },
+            ];
         }
         try {
-            const response = await this.mailerService.sendMail(message)
-            console.log(response);
+            const response = await this.mailerService.sendMail(payload);
+            if (response.response.includes('250')) {
+                this.updateStatus(emailPayload.uuid, 'SUCCESS');
+            } else {
+                this.updateStatus(emailPayload.uuid, 'FAIL');
+            }
         } catch (error) {
-            // Handle any errors that occur in processing the email message
+            this.updateStatus(emailPayload.uuid, 'FAIL');
             console.error('Error processing email message:', error);
         }
     }
 
-    private async handleSMSMessage(smsMessage: any) {
+    private async handleSMSMessage(smsPayload: any) {
         try {
-            const response = await fetch("https://sms.api.sinch.com/xms/v1/5b121cd7f3544f81b6cb929e842ef141/batches", {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: 'Bearer ' + 'c60a2deba7524fd68a9b0ad484d93151'
-                },
-                body: JSON.stringify({
-                    from: "447520651359",
-                    to: ["6592208810"],
-                    body: smsMessage.body
-                })
-            })
-            const data = await response.json()
-            console.log(data);
+            // const response = await fetch(
+            //     'https://sms.api.sinch.com/xms/v1/5b121cd7f3544f81b6cb929e842ef141/batches',
+            //     {
+            //         method: 'POST',
+            //         headers: {
+            //             'Content-Type': 'application/json',
+            //             Authorization:
+            //                 'Bearer ' + 'c60a2deba7524fd68a9b0ad484d93151',
+            //         },
+            //         body: JSON.stringify({
+            //             from: '447520651359',
+            //             to: smsPayload.recipient,
+            //             body: smsPayload.body,
+            //         }),
+            //     },
+            // );
+            // const data = await response.json();
+            const data = {
+                cancelled: false,
+            }; // Mock response
+            if (data.cancelled === false) {
+                await this.updateStatus(smsPayload.uuid, 'SUCCESS');
+            } else {
+                await this.updateStatus(smsPayload.uuid, 'FAIL');
+            }
         } catch (error) {
-            // Handle any errors that occur in processing the SMS message
+            await this.updateStatus(smsPayload.uuid, 'FAIL');
             console.error('Error processing SMS message:', error);
         }
     }
 }
-

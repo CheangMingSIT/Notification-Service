@@ -1,10 +1,10 @@
 import {
     IsEmail,
     IsNotEmpty,
-    IsNumber,
     IsOptional,
     IsString,
-    IsDate,
+    IsArray,
+    IsNumberString,
 } from 'class-validator';
 
 export class emailInputDto {
@@ -12,13 +12,14 @@ export class emailInputDto {
     @IsNotEmpty()
     from: string;
 
-    @IsEmail()
-    @IsNotEmpty()
+    @IsArray()
+    @IsEmail({}, { each: true })
     to: string;
 
-    @IsEmail()
     @IsOptional()
-    cc: string;
+    @IsArray()
+    @IsEmail({}, { each: true })
+    cc: string[];
 
     @IsEmail()
     @IsOptional()
@@ -32,7 +33,7 @@ export class emailInputDto {
     @IsOptional()
     body: string;
 
-    @IsNumber()
+    @IsNumberString()
     @IsOptional()
     template: number;
 }

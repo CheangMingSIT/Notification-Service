@@ -1,10 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import { RabbitmqService } from '@app/common/rabbit-mq/rabbit-mq.service';
+import { v4 as uuidv4 } from 'uuid';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+
+import { RabbitmqService } from '@app/common/rabbit-mq';
 import { NotificationLog, RK_NOTIFICATION_EMAIL } from '@app/common';
 import { emailInputDto } from './dtos/email-api.dto';
 
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+interface EmailLog {
+    readonly uuid: string;
+    readonly channel: string;
+    readonly status: string;
+    message: string;
+    sender: string;
+    recipient: object[];
+    scheduleDate: Date;
+    templateId: number;
+}
 
 @Injectable()
 export class EmailApiService {
@@ -14,32 +26,44 @@ export class EmailApiService {
         private notificationLogModel: Model<NotificationLog>,
     ) {}
 
-    async publishEmail(body: emailInputDto) {
-        const response = await this.rabbitMQService.publish(
-            RK_NOTIFICATION_EMAIL,
-            body,
-        );
-        const timestamp = new Date();
-        const payload = {
-            message_type: 'email',
-            status: response === true ? 'pending' : 'failed',
-            message: body.body,
-            sender: body.from,
-            recipient: body.cc ? [body.to, body.cc].join(',') : body.to,
-            scheduled_date: timestamp,
-            template_id: body.template,
-        };
-        const notificationLog = new this.notificationLogModel(payload);
-        await notificationLog.save();
-        if (response === false) {
-            return {
-                response: 'fail',
-                message: 'failed to add email to the queue',
+    async publishEmail(body: emailInputDto, file: any) {
+        let uuid = uuidv4();
+        const payload = { uuid, ...body, file };
+        try {
+            const cc = body.cc ? { cc: [...body.cc] } : {};
+            const to = { to: [...body.to] };
+
+            const response = await this.rabbitMQService.publish(
+                RK_NOTIFICATION_EMAIL,
+                payload,
+            );
+            const log: EmailLog = {
+                uuid: uuid,
+                channel: 'email',
+                status: response === true ? 'PENDING' : 'FAIL',
+                message: body.body,
+                sender: body.from,
+                recipient: body.cc ? [to, cc] : [to],
+                scheduleDate: new Date(),
+                templateId: body.template,
             };
+
+            const notificationLog = new this.notificationLogModel(log);
+            await notificationLog.save();
+            if (response === false) {
+                return {
+                    response: 'fail',
+                    message: 'Email failed to add to the queue',
+                };
+            }
+
+            return {
+                response: 'true',
+                message: 'Email added to the queue successfully',
+            };
+        } catch (error) {
+            console.error(error);
+            return error;
         }
-        return {
-            response: 'true',
-            message: 'Email added to the queue successfully',
-        };
     }
 }

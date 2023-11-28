@@ -10,10 +10,10 @@ import { MongooseModule } from '@nestjs/mongoose';
 
 @Module({
     imports: [
+        RabbitMqModule,
         MongooseModule.forFeature([
             { name: NotificationLog.name, schema: NotificationLogSchema },
         ]),
-        RabbitMqModule,
     ],
     controllers: [SmsApiController],
     providers: [SmsApiService],
