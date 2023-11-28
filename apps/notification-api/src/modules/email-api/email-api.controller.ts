@@ -24,8 +24,6 @@ export class EmailApiController {
         @Body() body: emailInputDto,
         @UploadedFile() file: Express.Multer.File,
     ): Promise<{ success: string; message: string }> {
-        console.log('controller: ' + JSON.stringify(body));
-
         const response = await this.emailApiService.publishEmail(body, file);
         return {
             success: response.response,

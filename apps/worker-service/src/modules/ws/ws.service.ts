@@ -20,7 +20,6 @@ export class WsService implements OnModuleInit {
             QUEUE_EMAIL,
             this.handleEmailMessage.bind(this),
         );
-
         await this.rabbitMQService.subscribe(
             QUEUE_SMS,
             this.handleSMSMessage.bind(this),

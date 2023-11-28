@@ -6,6 +6,7 @@ import { Model } from 'mongoose';
 import { RabbitmqService } from '@app/common/rabbit-mq';
 import { NotificationLog, RK_NOTIFICATION_EMAIL } from '@app/common';
 import { emailInputDto } from './dtos/email-api.dto';
+import { Cron, CronExpression } from '@nestjs/schedule';
 
 interface EmailLog {
     readonly uuid: string;
@@ -39,8 +40,8 @@ export class EmailApiService {
             );
             const log: EmailLog = {
                 uuid: uuid,
-                channel: 'email',
-                status: response === true ? 'PENDING' : 'FAIL',
+                channel: 'Email',
+                status: response === true ? 'QUEUING' : 'FAIL TO ENTER QUEUE',
                 message: body.body,
                 sender: body.from,
                 recipient: body.cc ? [to, cc] : [to],

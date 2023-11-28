@@ -14,7 +14,6 @@ export class SmsApiController {
     async sendSMS(
         @Body() body: smsInputDto,
     ): Promise<{ success: string; message: string }> {
-        console.log('controllerSMS: ' + JSON.stringify(body));
         const response = await this.smsApiService.publishSMS(body);
         return {
             success: response.response,

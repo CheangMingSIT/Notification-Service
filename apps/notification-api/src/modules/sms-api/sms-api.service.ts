@@ -36,7 +36,7 @@ export class SmsApiService {
             const log: smsLog = {
                 uuid: uuid,
                 channel: 'SMS',
-                status: response === true ? 'PENDING' : 'FAIL',
+                status: response === true ? 'QUEUING' : 'FAIL TO ENTER QUEUE',
                 message: body.body,
                 sender: body.sender,
                 recipient: [...body.recipient],

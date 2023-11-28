@@ -50,7 +50,7 @@ export class RabbitmqService implements OnModuleInit {
             durable: true,
             arguments: {
                 'x-queue-type': 'quorum',
-                'x-message-ttl': 100000,
+                'x-message-ttl': 10000,
                 'x-dead-letter-exchange': DLX_EXCHANGE,
                 'x-dead-letter-routing-key': RK_NOTIFICATION_SMS,
                 'x-delivery-limit': 5,
@@ -60,7 +60,7 @@ export class RabbitmqService implements OnModuleInit {
             durable: true,
             arguments: {
                 'x-queue-type': 'quorum',
-                'x-message-ttl': 100000,
+                'x-message-ttl': 10000,
                 'x-dead-letter-exchange': DLX_EXCHANGE,
                 'x-dead-letter-routing-key': RK_NOTIFICATION_EMAIL,
                 'x-delivery-limit': 5,
