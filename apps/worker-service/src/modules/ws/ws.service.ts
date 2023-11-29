@@ -42,7 +42,10 @@ export class WsService implements OnModuleInit {
             from: emailPayload.from,
             to: emailPayload.to,
             subject: emailPayload.subject,
-            text: emailPayload.body,
+            template: './template',
+            context: {
+                content: emailPayload.body,
+            },
         };
         if (emailPayload.cc) {
             payload['cc'] = emailPayload.cc;

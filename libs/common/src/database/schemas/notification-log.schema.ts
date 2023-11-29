@@ -23,9 +23,6 @@ export class NotificationLog extends Document {
 
     @Prop()
     scheduleDate: Date;
-
-    @Prop()
-    templateId: number;
 }
 
 export const NotificationLogSchema =

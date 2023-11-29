@@ -15,7 +15,6 @@ interface smsLog {
     sender: string;
     recipient: string[];
     scheduleDate: Date;
-    templateId: number;
 }
 
 @Injectable()
@@ -41,7 +40,6 @@ export class SmsApiService {
                 sender: body.sender,
                 recipient: [...body.recipient],
                 scheduleDate: new Date(),
-                templateId: body.template,
             };
             const notificationLog = new this.notificationLogModel(log);
             await notificationLog.save();

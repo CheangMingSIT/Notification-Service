@@ -3,12 +3,13 @@ import {
     NotificationLog,
     NotificationLogSchema,
     RabbitMqModule,
-    RabbitmqService,
 } from '@app/common';
 import { WsService } from './ws.service';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MulterModule } from '@nestjs/platform-express';
+import { join } from 'path';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 
 @Module({
     imports: [
@@ -31,6 +32,13 @@ import { MulterModule } from '@nestjs/platform-express';
             },
             defaults: {
                 from: '"No Reply" <noreply@sptel.com>',
+            },
+            template: {
+                dir: join(__dirname + '/template'),
+                adapter: new HandlebarsAdapter(),
+                options: {
+                    strict: true,
+                },
             },
         }),
     ],

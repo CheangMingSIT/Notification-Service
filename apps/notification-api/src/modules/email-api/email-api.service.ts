@@ -6,7 +6,6 @@ import { Model } from 'mongoose';
 import { RabbitmqService } from '@app/common/rabbit-mq';
 import { NotificationLog, RK_NOTIFICATION_EMAIL } from '@app/common';
 import { emailInputDto } from './dtos/email-api.dto';
-import { Cron, CronExpression } from '@nestjs/schedule';
 
 interface EmailLog {
     readonly uuid: string;
@@ -16,7 +15,6 @@ interface EmailLog {
     sender: string;
     recipient: object[];
     scheduleDate: Date;
-    templateId: number;
 }
 
 @Injectable()
@@ -46,7 +44,6 @@ export class EmailApiService {
                 sender: body.from,
                 recipient: body.cc ? [to, cc] : [to],
                 scheduleDate: new Date(),
-                templateId: body.template,
             };
 
             const notificationLog = new this.notificationLogModel(log);
