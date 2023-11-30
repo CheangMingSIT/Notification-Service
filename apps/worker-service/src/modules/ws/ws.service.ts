@@ -1,13 +1,13 @@
 import { NotificationLog, QUEUE_EMAIL, QUEUE_SMS } from '@app/common';
 import { RabbitmqService } from '@app/common/rabbit-mq';
 
-import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
 @Injectable()
-export class WsService implements OnModuleInit {
+export class WsService implements OnApplicationBootstrap {
     constructor(
         private readonly rabbitMQService: RabbitmqService,
         private mailerService: MailerService,
@@ -15,12 +15,12 @@ export class WsService implements OnModuleInit {
         private notificationLogModel: Model<NotificationLog>,
     ) {}
 
-    async onModuleInit() {
-        await this.rabbitMQService.subscribe(
+    onApplicationBootstrap() {
+        this.rabbitMQService.subscribe(
             QUEUE_EMAIL,
             this.handleEmailMessage.bind(this),
         );
-        await this.rabbitMQService.subscribe(
+        this.rabbitMQService.subscribe(
             QUEUE_SMS,
             this.handleSMSMessage.bind(this),
         );

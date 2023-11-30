@@ -14,16 +14,21 @@ import {
     DLQ_SMS,
     DLQ_EMAIL,
 } from '../constants';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class RabbitmqService implements OnModuleInit {
+    constructor(
+        private readonly configService: ConfigService, // Remove @Inject as it's not needed
+    ) {}
     // Queue Service interface
     private channel: ChannelWrapper;
-    private connection;
+    private connection: AmqpConnectionManager;
 
     async onModuleInit() {
         console.log('Initializing RabbitMQ...');
-        this.connection = connect(['amqp://localhost:5673']);
+        const rabbitmqUri = this.configService.get<string>('RABBITMQ_URI'); // Retrieve URI from environment file
+        this.connection = connect([rabbitmqUri]);
         this.connection.on('connect', () => {
             console.log('Connection to RabbitMQ up!');
         });
@@ -66,13 +71,6 @@ export class RabbitmqService implements OnModuleInit {
                 'x-delivery-limit': 5,
             },
         });
-
-        await channel.assertExchange(DLX_EXCHANGE, 'direct', {
-            durable: true,
-        });
-        await channel.assertQueue(DLQ_SMS, { durable: true });
-        await channel.assertQueue(DLQ_EMAIL, { durable: true });
-
         await channel.bindQueue(
             QUEUE_SMS,
             EX_NOTIFICATION,
@@ -84,6 +82,11 @@ export class RabbitmqService implements OnModuleInit {
             RK_NOTIFICATION_EMAIL,
         );
 
+        await channel.assertExchange(DLX_EXCHANGE, 'direct', {
+            durable: true,
+        });
+        await channel.assertQueue(DLQ_EMAIL, { durable: true });
+        await channel.assertQueue(DLQ_SMS, { durable: true });
         await channel.bindQueue(DLQ_SMS, DLX_EXCHANGE, RK_NOTIFICATION_SMS);
         await channel.bindQueue(DLQ_EMAIL, DLX_EXCHANGE, RK_NOTIFICATION_EMAIL);
     }

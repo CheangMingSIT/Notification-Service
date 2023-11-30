@@ -23,7 +23,9 @@
             "entryFile": "main",
             "sourceRoot": "apps/worker-service/src",
             "compilerOptions": {
-                "tsConfigPath": "apps/worker-service/tsconfig.app.json"
+                "tsConfigPath": "apps/worker-service/tsconfig.app.json",
+                "assets": ["template/*.hbs"],
+                "watchAssets": true
             }
         },
         "common": {
@@ -33,6 +35,15 @@
             "sourceRoot": "libs/common/src",
             "compilerOptions": {
                 "tsConfigPath": "libs/common/tsconfig.lib.json"
+            }
+        },
+        "notification-log-api": {
+            "type": "application",
+            "root": "apps/notification-log-api",
+            "entryFile": "main",
+            "sourceRoot": "apps/notification-log-api/src",
+            "compilerOptions": {
+                "tsConfigPath": "apps/notification-log-api/tsconfig.app.json"
             }
         }
     },

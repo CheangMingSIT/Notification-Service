@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+    notification-api:
+        image: api
+        container_name: notification-api
+        ports:
+            - 3000:3000
+        environment:
+            - MONGODB_URI=mongodb://mongo:27017/notificationService
+            - RABBITMQ_URI=amqp://rabbitmq:5672
+        networks:
+            - cm-network
+    worker-service:
+        image: ws
+        container_name: worker-service
+        ports:
+            - 3010:3010
+        environment:
+            - MONGODB_URI=mongodb://mongo:27017/notificationService
+            - RABBITMQ_URI=amqp://rabbitmq:5672
+        networks:
+            - cm-network
+    mongo:
+        image: mongodb/mongodb-community-server:latest
+        container_name: mongodb
+        ports:
+            - 27017:27017
+        networks:
+            - cm-network
+    rabbitmq:
+        image: rabbitmq:3.12-management
+        container_name: rabbitmq
+        ports:
+            - 15672:15672
+            - 5672:5672
+        networks:
+            - cm-network
+
+networks:
+    cm-network:
