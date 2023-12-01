@@ -2,7 +2,6 @@ import { EmailApiService } from './email-api.service';
 import { EmailApiController } from './email-api.controller';
 import { NotificationLog, NotificationLogSchema } from '@app/common';
 
-// libs
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { RabbitMqModule } from '@app/common';
