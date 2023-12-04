@@ -3,8 +3,11 @@ import { v4 as uuidv4 } from 'uuid';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
-import { RabbitmqService } from '@app/common/rabbit-mq';
-import { NotificationLog, RK_NOTIFICATION_EMAIL } from '@app/common';
+import {
+    RabbitmqService,
+    NotificationLog,
+    RK_NOTIFICATION_EMAIL,
+} from '@app/common';
 import { emailInputDto } from './dtos/email-api.dto';
 
 interface EmailLog {
@@ -13,7 +16,7 @@ interface EmailLog {
     readonly status: string;
     message: string;
     sender: string;
-    recipient: object[];
+    recipient: string[];
     scheduleDate: Date;
 }
 
@@ -29,9 +32,6 @@ export class EmailApiService {
         let uuid = uuidv4();
         const payload = { uuid, ...body, file };
         try {
-            const cc = body.cc ? { cc: [...body.cc] } : {};
-            const to = { to: [...body.to] };
-
             const response = await this.rabbitMQService.publish(
                 RK_NOTIFICATION_EMAIL,
                 payload,
@@ -42,7 +42,7 @@ export class EmailApiService {
                 status: response === true ? 'QUEUING' : 'FAIL TO ENTER QUEUE',
                 message: body.body,
                 sender: body.from,
-                recipient: body.cc ? [to, cc] : [to],
+                recipient: body.cc ? [...body.to, ...body.cc] : [...body.to],
                 scheduleDate: new Date(),
             };
 

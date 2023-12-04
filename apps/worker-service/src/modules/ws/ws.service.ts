@@ -1,5 +1,9 @@
-import { NotificationLog, QUEUE_EMAIL, QUEUE_SMS } from '@app/common';
-import { RabbitmqService } from '@app/common/rabbit-mq';
+import {
+    RabbitmqService,
+    NotificationLog,
+    QUEUE_EMAIL,
+    QUEUE_SMS,
+} from '@app/common';
 
 import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';

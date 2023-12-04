@@ -18,8 +18,8 @@ export class NotificationLog extends Document {
     @Prop()
     sender: string;
 
-    @Prop([Object])
-    recipient: Object[];
+    @Prop([String])
+    recipient: string[];
 
     @Prop()
     scheduleDate: Date;

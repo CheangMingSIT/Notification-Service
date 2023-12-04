@@ -9,15 +9,12 @@ export class NotificationRecordService {
         @InjectModel(NotificationLog.name)
         private notificationLog: Model<NotificationLog>,
     ) {}
-    fetchNotificationLog(query: { recipient: string; sender: string }) {
+    fetchNotificationLog(query: { recipient: string[]; sender: string[] }) {
         const { recipient, sender } = query;
+        const receiver = Array.isArray(recipient) ? recipient : [recipient];
         return this.notificationLog
             .find({
-                recipient: {
-                    $elemMatch: {
-                        to: { $in: recipient },
-                    },
-                },
+                recipient: { $in: receiver },
             })
             .exec()
             .then(

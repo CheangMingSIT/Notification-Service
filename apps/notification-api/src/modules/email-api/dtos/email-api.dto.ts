@@ -12,12 +12,10 @@ export class emailInputDto {
     @IsNotEmpty()
     from: string;
 
-    @IsArray()
     @IsEmail({}, { each: true })
-    to: string;
+    to: string[];
 
     @IsOptional()
-    @IsArray()
     @IsEmail({}, { each: true })
     cc: string[];
 

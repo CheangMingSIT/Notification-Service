@@ -3,9 +3,12 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 
-import { NotificationLog, RK_NOTIFICATION_SMS } from '@app/common';
+import {
+    RabbitmqService,
+    NotificationLog,
+    RK_NOTIFICATION_SMS,
+} from '@app/common';
 import { smsInputDto } from './dtos/sms.dto';
-import { RabbitmqService } from '@app/common/rabbit-mq/rabbit-mq.service';
 
 interface smsLog {
     uuid: string;
@@ -32,13 +35,14 @@ export class SmsApiService {
                 RK_NOTIFICATION_SMS,
                 payload,
             );
+            console.log(body.recipient);
             const log: smsLog = {
                 uuid: uuid,
                 channel: 'SMS',
                 status: response === true ? 'QUEUING' : 'FAIL TO ENTER QUEUE',
                 message: body.body,
                 sender: body.sender,
-                recipient: [...body.recipient],
+                recipient: body.recipient,
                 scheduleDate: new Date(),
             };
             const notificationLog = new this.notificationLogModel(log);

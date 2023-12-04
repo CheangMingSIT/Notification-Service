@@ -1,4 +1,8 @@
-import { NotificationLog, NotificationLogSchema } from '@app/common';
+import {
+    ApiAuthModule,
+    NotificationLog,
+    NotificationLogSchema,
+} from '@app/common';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { NotificationRecordService } from './notification-record.service';
@@ -9,6 +13,7 @@ import { NotificationRecordController } from './notification-record.controller';
         MongooseModule.forFeature([
             { name: NotificationLog.name, schema: NotificationLogSchema },
         ]),
+        ApiAuthModule,
     ],
     controllers: [NotificationRecordController],
     providers: [NotificationRecordService],
