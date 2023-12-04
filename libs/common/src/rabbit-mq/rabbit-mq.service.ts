@@ -24,14 +24,12 @@ export class RabbitmqService implements OnModuleInit {
     // Queue Service interface
     private channel: ChannelWrapper;
     private connection: AmqpConnectionManager;
-    private setupPromise: Promise<void>;
 
     onModuleInit() {
         console.log('Initializing RabbitMQ...');
         const rabbitmqUri = this.configService.get<string>('RABBITMQ_URI');
         this.connection = connect([rabbitmqUri]);
         this.connection.on('connect', () => {
-            this.setupPromise = this.setupRabbitMQ();
             console.log('Connection to RabbitMQ up!');
         });
 
@@ -42,15 +40,16 @@ export class RabbitmqService implements OnModuleInit {
         this.connection.on('connectFailed', (err) => {
             console.error(err);
         });
-    }
 
-    private async setupRabbitMQ() {
-        const channel = this.connection.createChannel({
+        this.channel = this.connection.createChannel({
             json: true,
+            setup: async (channel) => await this.setupRabbitMQ(channel),
         });
 
-        await channel.waitForConnect();
+        this.channel.waitForConnect();
+    }
 
+    private async setupRabbitMQ(channel) {
         await channel.assertExchange(EX_NOTIFICATION, 'direct', {
             durable: true,
         });
@@ -92,13 +91,11 @@ export class RabbitmqService implements OnModuleInit {
         await channel.assertQueue(DLQ_SMS, { durable: true });
         await channel.bindQueue(DLQ_SMS, DLX_EXCHANGE, RK_NOTIFICATION_SMS);
         await channel.bindQueue(DLQ_EMAIL, DLX_EXCHANGE, RK_NOTIFICATION_EMAIL);
-
-        this.channel = channel;
     }
 
     public async publish(routingkey: string, message: any) {
+        this.channel.waitForConnect();
         try {
-            await this.setupPromise;
             return this.channel.publish(
                 EX_NOTIFICATION,
                 routingkey,
@@ -111,7 +108,7 @@ export class RabbitmqService implements OnModuleInit {
     }
 
     public async subscribe(queue: string, onMessage: (msg) => void) {
-        await this.setupPromise;
+        this.channel.waitForConnect();
         await this.channel.addSetup((channel: any) => {
             channel.consume(queue, (msg: any) => {
                 if (msg) {
