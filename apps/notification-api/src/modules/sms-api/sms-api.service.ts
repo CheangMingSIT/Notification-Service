@@ -35,7 +35,6 @@ export class SmsApiService {
                 RK_NOTIFICATION_SMS,
                 payload,
             );
-            console.log(body.recipient);
             const log: smsLog = {
                 uuid: uuid,
                 channel: 'SMS',
@@ -60,8 +59,7 @@ export class SmsApiService {
                 message: 'SMS added to the queue successfully',
             };
         } catch (error) {
-            console.error(error);
-            return error;
+            throw new Error(error);
         }
     }
 }

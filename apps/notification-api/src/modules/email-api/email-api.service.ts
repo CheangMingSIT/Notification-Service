@@ -54,14 +54,12 @@ export class EmailApiService {
                     message: 'Email failed to add to the queue',
                 };
             }
-
             return {
                 response: 'true',
                 message: 'Email added to the queue successfully',
             };
         } catch (error) {
-            console.error(error);
-            return error;
+            throw new Error(error);
         }
     }
 }
