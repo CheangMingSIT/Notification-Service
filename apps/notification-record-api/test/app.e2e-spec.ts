@@ -1,14 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import * as request from 'supertest';
-import { NotificationLogApiModule } from '../src/notification-record-api.module';
+import { NotificationRecordApiModule } from '../src/notification-record-api.module';
 
 describe('NotificationLogApiController (e2e)', () => {
     let app: INestApplication;
 
     beforeEach(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({
-            imports: [NotificationLogApiModule],
+            imports: [NotificationRecordApiModule],
         }).compile();
 
         app = moduleFixture.createNestApplication();

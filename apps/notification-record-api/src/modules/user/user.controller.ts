@@ -1,6 +1,7 @@
-import { NOTIFICATIONAPI, UserAuthGuard } from '@app/common';
+import { NOTIFICATIONAPI } from '@app/common';
 import { Controller, Post, UseGuards, Request } from '@nestjs/common';
 import { UserService } from './user.service';
+import { UserAuthGuard } from '@app/auth';
 
 @Controller(NOTIFICATIONAPI)
 export class UserController {

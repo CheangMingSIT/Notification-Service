@@ -1,8 +1,5 @@
-import {
-    NotificationLog,
-    NotificationLogSchema,
-    UserAuthModule,
-} from '@app/common';
+import { NotificationLog, NotificationLogSchema } from '@app/common';
+import { UserAuthModule } from '@app/auth';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { NotificationRecordService } from './notification-record.service';
