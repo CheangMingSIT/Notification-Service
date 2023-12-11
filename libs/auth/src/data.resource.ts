@@ -2,7 +2,7 @@ export interface Users {
     id: number;
     username: string;
     password: string;
-    RoleId: number;
+    roleId: number;
 }
 export interface Role {
     id: number;
@@ -22,9 +22,9 @@ export interface Permission {
 }
 
 export const user: Users[] = [
-    { id: 1, username: 'admin', password: 'admin', RoleId: 1 },
-    { id: 2, username: 'manager', password: 'manager', RoleId: 2 },
-    { id: 3, username: 'user', password: 'user', RoleId: 3 },
+    { id: 1, username: 'admin', password: 'admin', roleId: 1 },
+    { id: 2, username: 'manager', password: 'manager', roleId: 2 },
+    { id: 3, username: 'user', password: 'user', roleId: 3 },
 ];
 
 export const role: Role[] = [

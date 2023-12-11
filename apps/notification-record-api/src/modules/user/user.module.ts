@@ -5,14 +5,15 @@ import { JwtModule } from '@nestjs/jwt';
 import { join } from 'path';
 import * as fs from 'fs';
 import { ApiAuthModule } from '../api-auth/api-auth.module';
-import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from '@app/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from '@app/common';
 
 const reqPath = join(__dirname, '../');
 const privateKey = fs.readFileSync(reqPath + 'keys/private.key', 'utf8');
 const publicKey = fs.readFileSync(reqPath + 'keys/public.key', 'utf8');
 @Module({
     imports: [
+        TypeOrmModule.forFeature([User], 'postgres'),
         JwtModule.register({
             privateKey: privateKey,
             publicKey: publicKey,
@@ -22,12 +23,6 @@ const publicKey = fs.readFileSync(reqPath + 'keys/public.key', 'utf8');
             },
         }),
         ApiAuthModule,
-        MongooseModule.forFeature([
-            {
-                name: User.name,
-                schema: UserSchema,
-            },
-        ]),
     ],
     controllers: [UserController],
     providers: [UserService],

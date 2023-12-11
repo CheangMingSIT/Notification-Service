@@ -1,8 +1,15 @@
 import { Module } from '@nestjs/common';
 import { WsModule } from './modules/ws/ws.module';
-import { DatabaseModule } from '@app/common';
+import { MongoDBModule } from '@app/common';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-    imports: [WsModule, DatabaseModule],
+    imports: [
+        ConfigModule.forRoot({
+            isGlobal: true,
+        }),
+        WsModule,
+        MongoDBModule,
+    ],
 })
 export class WorkerServiceModule {}

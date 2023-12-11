@@ -1,7 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { ApiKey } from '../../../../../libs/common/src/database';
+import { ApiKey } from '@app/common';
 import { randomBytes } from 'crypto';
 
 interface ApiKeyRecord {

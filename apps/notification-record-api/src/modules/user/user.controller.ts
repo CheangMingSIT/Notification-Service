@@ -14,8 +14,8 @@ export class UserController {
     }
 
     @Post('signUp')
-    signUp(@Body() body: { username: string; password: string }) {
-        return this.userService.signUp(body.username, body.password);
+    signUp(@Body() body: { email: string; password: string }) {
+        return this.userService.signUp(body.email, body.password);
     }
 
     @Post('deleteUser')
