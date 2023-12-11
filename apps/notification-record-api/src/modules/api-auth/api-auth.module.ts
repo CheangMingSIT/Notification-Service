@@ -1,21 +1,23 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ApiAuthService } from './api-auth.service';
 import { PassportModule } from '@nestjs/passport';
+
+import { ApiAuthService } from './api-auth.service';
 import { ApiKeyStrategy } from './guard/api-auth.strategy';
-import { ApiKey, ApiKeySchema, DatabaseModule } from '@app/common';
+import { ApiKey, ApiKeySchema } from '@app/common';
 import { ApiAuthController } from './api-auth.controller';
+import { CaslAbilityModule } from '@app/auth';
 
 @Module({
     imports: [
         PassportModule,
-        DatabaseModule,
         MongooseModule.forFeature([
             {
                 name: ApiKey.name,
                 schema: ApiKeySchema,
             },
         ]),
+        CaslAbilityModule,
     ],
     providers: [ApiAuthService, ApiKeyStrategy],
     controllers: [ApiAuthController],

@@ -28,6 +28,7 @@ export class ApiAuthService {
         }
         return apiKey;
     }
+
     async validateApiKey(apikey: string): Promise<boolean> {
         const apiKeyRecord = await this.apiKeyRecord.findOne({
             apiKey: apikey,
@@ -36,5 +37,14 @@ export class ApiAuthService {
             throw new UnauthorizedException();
         }
         return true;
+    }
+
+    async listApiKeys(): Promise<ApiKey[]> {
+        try {
+            const response = await this.apiKeyRecord.find();
+            return response;
+        } catch (error) {
+            throw error;
+        }
     }
 }

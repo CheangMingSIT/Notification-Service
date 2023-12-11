@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { Users, users } from '../authorization/Data/user-data.resource';
+import { Users, user } from '../data.resource';
 @Injectable()
 export class UserAuthService {
-    private readonly users: Users[] = users;
+    private readonly users: Users[] = user;
     async findUser(username: string): Promise<Users | undefined> {
         return this.users.find((user) => user.username === username);
     }
