@@ -1,9 +1,8 @@
 import { Body, Controller, Post, UseFilters } from '@nestjs/common';
 
+import { HttpExceptionFilter, NOTIFICATIONAPI } from '@app/common';
 import { smsInputDto } from './dtos/sms.dto';
 import { SmsApiService } from './sms-api.service';
-import { HttpExceptionFilter } from '../../http-exception.filter';
-import { NOTIFICATIONAPI } from '@app/common';
 
 @Controller(NOTIFICATIONAPI)
 export class SmsApiController {

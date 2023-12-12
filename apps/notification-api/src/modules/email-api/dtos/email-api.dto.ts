@@ -1,10 +1,9 @@
 import {
     IsEmail,
     IsNotEmpty,
+    IsNumberString,
     IsOptional,
     IsString,
-    IsArray,
-    IsNumberString,
 } from 'class-validator';
 
 export class emailInputDto {

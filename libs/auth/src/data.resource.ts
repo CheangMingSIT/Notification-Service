@@ -1,6 +1,6 @@
 export interface Users {
-    id: number;
-    username: string;
+    uuid: number;
+    email: string;
     password: string;
     roleId: number;
 }
@@ -22,9 +22,9 @@ export interface Permission {
 }
 
 export const user: Users[] = [
-    { id: 1, username: 'admin', password: 'admin', roleId: 1 },
-    { id: 2, username: 'manager', password: 'manager', roleId: 2 },
-    { id: 3, username: 'user', password: 'user', roleId: 3 },
+    { uuid: 1, email: 'admin', password: 'admin', roleId: 1 },
+    { uuid: 2, email: 'manager', password: 'manager', roleId: 2 },
+    { uuid: 3, email: 'user', password: 'user', roleId: 3 },
 ];
 
 export const role: Role[] = [

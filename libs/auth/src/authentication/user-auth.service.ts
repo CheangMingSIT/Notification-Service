@@ -1,18 +1,24 @@
-import { Injectable } from '@nestjs/common';
-import { Users, user } from '../data.resource';
+import { User } from '@app/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import * as bcrypt from 'bcrypt';
+import { Repository } from 'typeorm';
 @Injectable()
 export class UserAuthService {
-    private readonly users: Users[] = user;
-    async findUser(username: string): Promise<Users | undefined> {
-        return this.users.find((user) => user.username === username);
+    constructor(
+        @InjectRepository(User, 'postgres') private userRepo: Repository<User>,
+    ) {}
+    async findUser(email: string): Promise<User | undefined> {
+        return await this.userRepo.findOneBy({ email });
     }
 
-    async validateUser(username: string, pass: string): Promise<any> {
-        const user = await this.findUser(username);
-        if (user && user.password === pass) {
+    async validateUser(email: string, pass: string): Promise<any> {
+        const user = await this.findUser(email);
+        if (user && (await bcrypt.compare(pass, user.password))) {
             const { password, ...payload } = user;
             return payload;
+        } else {
+            throw new BadRequestException('Invalid credentials');
         }
-        return null;
     }
 }

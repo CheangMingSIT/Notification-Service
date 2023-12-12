@@ -1,8 +1,7 @@
-import { User } from '@app/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import {
-    TypeOrmModuleOptions,
     TypeOrmModuleAsyncOptions,
+    TypeOrmModuleOptions,
 } from '@nestjs/typeorm';
 
 export default class postgresConfig {
@@ -17,7 +16,8 @@ export default class postgresConfig {
             password: configService.get('POSTGRES_PASSWORD'),
             database: configService.get('POSTGRES_DB'),
             url: configService.get('POSTGRES_URL'),
-            entities: [User],
+            synchronize: true,
+            autoLoadEntities: true,
         };
     }
 }

@@ -1,3 +1,4 @@
+import { HttpExceptionFilter, NOTIFICATIONAPI } from '@app/common';
 import {
     Body,
     Controller,
@@ -6,12 +7,9 @@ import {
     UseFilters,
     UseInterceptors,
 } from '@nestjs/common';
-
-import { EmailApiService } from './email-api.service';
-import { NOTIFICATIONAPI } from '@app/common';
-import { emailInputDto } from './dtos/email-api.dto';
-import { HttpExceptionFilter } from '../../http-exception.filter';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { emailInputDto } from './dtos/email-api.dto';
+import { EmailApiService } from './email-api.service';
 
 @Controller(NOTIFICATIONAPI)
 export class EmailApiController {

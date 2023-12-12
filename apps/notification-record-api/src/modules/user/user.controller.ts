@@ -1,7 +1,17 @@
-import { NOTIFICATIONAPI } from '@app/common';
-import { Controller, Post, UseGuards, Request, Body } from '@nestjs/common';
-import { UserService } from './user.service';
 import { JwtAuthGuard, UserAuthGuard } from '@app/auth';
+import { HttpExceptionFilter, NOTIFICATIONAPI, Serialize } from '@app/common';
+import {
+    Body,
+    Controller,
+    Post,
+    Request,
+    UseFilters,
+    UseGuards,
+} from '@nestjs/common';
+import { UserDeleteDto } from './dtos/user-delete.dto';
+import { userRegistrationDto } from './dtos/user-registration.dto';
+import { UserDto } from './dtos/user.dto';
+import { UserService } from './user.service';
 
 @Controller(NOTIFICATIONAPI)
 export class UserController {
@@ -14,13 +24,23 @@ export class UserController {
     }
 
     @Post('signUp')
-    signUp(@Body() body: { email: string; password: string }) {
-        return this.userService.signUp(body.email, body.password);
+    @Serialize(UserDto)
+    @UseFilters(HttpExceptionFilter)
+    signUp(@Body() body: userRegistrationDto) {
+        return this.userService.signUp(body);
+    }
+
+    @Post('updateUser')
+    @UseGuards(JwtAuthGuard)
+    @UseFilters(HttpExceptionFilter)
+    updateUser(@Body() body: { roleId: number; email: string }) {
+        return this.userService.updateUser(body);
     }
 
     @Post('deleteUser')
     @UseGuards(JwtAuthGuard)
-    deleteUser(@Body() body: { username: string }) {
-        return this.userService.deleteUser(body.username);
+    @UseFilters(HttpExceptionFilter)
+    deleteUser(@Body() body: UserDeleteDto) {
+        return this.userService.deleteUser(body);
     }
 }

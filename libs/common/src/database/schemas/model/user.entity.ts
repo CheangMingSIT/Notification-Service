@@ -1,9 +1,9 @@
 import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
 
-@Entity('tbl_user', { schema: 'postgres', database: 'postgres' })
+@Entity('User', { schema: 'User', database: 'User' })
 export class User {
-    @PrimaryGeneratedColumn()
-    id: number;
+    @PrimaryGeneratedColumn('uuid', { name: 'uuid' })
+    uuid: string;
 
     @Column()
     email: string;
@@ -11,6 +11,6 @@ export class User {
     @Column()
     password: string;
 
-    @Column()
+    @Column({ default: '1' }) // 1 = admin | 2 = user etc
     roleId: number;
 }

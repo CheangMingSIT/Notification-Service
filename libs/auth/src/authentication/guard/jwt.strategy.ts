@@ -1,8 +1,8 @@
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import { PassportStrategy } from '@nestjs/passport';
 import { Injectable } from '@nestjs/common';
-import { join } from 'path';
+import { PassportStrategy } from '@nestjs/passport';
 import * as fs from 'fs';
+import { ExtractJwt, Strategy } from 'passport-jwt';
+import { join } from 'path';
 
 const reqPath = join(__dirname, '../');
 const publicKey = fs.readFileSync(reqPath + 'keys/public.key', 'utf8');
@@ -19,8 +19,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     async validate(payload: any) {
         return {
-            id: payload.id,
-            username: payload.username,
+            uuid: payload.uuid,
+            email: payload.email,
             roleId: payload.roleId,
         };
     }
