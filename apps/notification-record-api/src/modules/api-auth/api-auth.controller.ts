@@ -1,8 +1,14 @@
+import {
+    Actions,
+    AppAbility,
+    CheckPolicies,
+    JwtAuthGuard,
+    PolicyGuard,
+} from '@app/auth';
+import { NOTIFICATIONAPI } from '@app/common';
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { ApiAuthService } from './api-auth.service';
-import { NOTIFICATIONAPI } from '@app/common';
-import { JwtAuthGuard } from '@app/auth';
-import { AppAbility, CheckPolicies, PolicyGuard, Actions } from '@app/auth';
+import { ApiAuthGuard } from './guard/api-auth.guard';
 
 @Controller(NOTIFICATIONAPI)
 export class ApiAuthController {
@@ -19,7 +25,8 @@ export class ApiAuthController {
     }
 
     @Get('apiKeyRecords')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(ApiAuthGuard, PolicyGuard)
+    @CheckPolicies((ability: AppAbility) => ability.can(Actions.Read, 'ApiKey'))
     async listApiKeys() {
         const response = await this.apiAuthService.listApiKeys();
         return response;

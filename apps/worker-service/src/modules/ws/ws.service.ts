@@ -1,12 +1,12 @@
 import {
-    RabbitmqService,
     NotificationLog,
     QUEUE_EMAIL,
     QUEUE_SMS,
+    RabbitmqService,
 } from '@app/common';
 
-import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
+import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 
@@ -66,10 +66,10 @@ export class WsService implements OnApplicationBootstrap {
             ];
         }
         try {
-            // const response = await this.mailerService.sendMail(payload);
-            const response = {
-                response: '250 OK',
-            }; // Mock response
+            const response = await this.mailerService.sendMail(payload);
+            // const response = {
+            //     response: '250 OK',
+            // }; // Mock response
             if (response.response.includes('250')) {
                 this.updateStatus(emailPayload.uuid, 'SUCCESS');
             } else {

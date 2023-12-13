@@ -1,11 +1,17 @@
 import { User } from '@app/common';
-import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+    BadRequestException,
+    HttpException,
+    HttpStatus,
+    Injectable,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
 import { UserDeleteDto } from './dtos/user-delete.dto';
-import { userRegistrationDto } from './dtos/user-registration.dto';
+import { UserRegistrationDto } from './dtos/user-registration.dto';
+import { UserUpdateDto } from './dtos/user-role-update.dto';
 
 @Injectable()
 export class UserService {
@@ -24,7 +30,7 @@ export class UserService {
         };
     }
 
-    async signUp(body: userRegistrationDto) {
+    async signUp(body: UserRegistrationDto) {
         const { email, password } = body;
         const existingUser = await this.userRepo.findOneBy({ email });
         if (existingUser) {
@@ -40,11 +46,15 @@ export class UserService {
             const saveUser = await this.userRepo.save(newUser);
             return saveUser;
         } catch (e) {
-            throw new BadRequestException('Failed to create user');
+            throw new HttpException(
+                "Couldn't create user",
+                HttpStatus.BAD_REQUEST,
+                { cause: e.message, description: 'User creation failed' },
+            );
         }
     }
 
-    async updateUser(body: { roleId: number; email: string }) {
+    async updateUser(body: UserUpdateDto) {
         const { roleId, email } = body;
         const existingUser = await this.userRepo.findOneBy({ email });
         if (!existingUser) {
@@ -59,7 +69,11 @@ export class UserService {
                 message: 'Successfully updated user',
             };
         } catch (e) {
-            throw new BadRequestException('Failed to update user');
+            throw new HttpException(
+                "Couldn't update user",
+                HttpStatus.BAD_REQUEST,
+                { cause: e.message, description: 'User update failed' },
+            );
         }
     }
 
@@ -77,7 +91,7 @@ export class UserService {
                 message: 'Successfully deleted user',
             };
         } catch (e) {
-            throw new BadRequestException('Failed to delete user');
+            throw new BadRequestException(e.message);
         }
     }
 }

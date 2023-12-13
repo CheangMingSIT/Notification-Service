@@ -1,39 +1,43 @@
-import { Injectable } from '@nestjs/common';
 import {
     AbilityBuilder,
     createMongoAbility,
     ExtractSubjectType,
-    ForcedSubject,
     MongoAbility,
 } from '@casl/ability';
-import { Actions } from './enum/actions.enum';
+import { Injectable } from '@nestjs/common';
+import { CaslAbilityService } from './casl-ability.service';
 
-const Subject = ['User', 'ApiKey', 'all'] as const;
+const Subject = ['User', 'ApiKey', 'NotificationRecord', 'all'] as const;
+const Actions = ['manage', 'create', 'read', 'update', 'delete'] as const;
 export type AppAbility = MongoAbility<
     [
-        Actions,
-        (
-            | (typeof Subject)[number]
-            | ForcedSubject<Exclude<(typeof Subject)[number], 'all'>>
-        ),
+        (typeof Actions)[number] | Exclude<(typeof Subject)[number], 'all'>,
+        (typeof Subject)[number] | Exclude<(typeof Subject)[number], 'all'>,
     ]
 >;
 
 @Injectable()
 export class CaslAbilityFactory {
-    createForUser(user: any) {
+    constructor(private readonly caslAbilityService: CaslAbilityService) {}
+    async createForUser(user: any) {
         const { can, cannot, build } = new AbilityBuilder<AppAbility>(
             createMongoAbility,
         );
-        if (user.roleId === 1) {
-            can(Actions.Manage, 'all');
-        } else {
-            cannot(Actions.Read, 'all');
-            cannot(Actions.Manage, 'all');
+        const response = await this.caslAbilityService.identifyAbility(
+            user.roleId,
+        );
+        response.forEach((element) => {
+            can(
+                element.permission.action as (typeof Actions)[number],
+                element.permission.subject as (typeof Subject)[number],
+            );
+        });
+        if (user === true) {
+            can('read', 'ApiKey');
         }
         return build({
             detectSubjectType: (item) =>
-                item.constructor as ExtractSubjectType<typeof Subject>,
+                item as ExtractSubjectType<typeof Subject>,
         });
     }
 }

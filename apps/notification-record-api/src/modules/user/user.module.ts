@@ -1,4 +1,5 @@
-import { User } from '@app/common';
+import { CaslAbilityModule } from '@app/auth';
+import { Role, RolePermission, User } from '@app/common';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -13,7 +14,7 @@ const privateKey = fs.readFileSync(reqPath + 'keys/private.key', 'utf8');
 const publicKey = fs.readFileSync(reqPath + 'keys/public.key', 'utf8');
 @Module({
     imports: [
-        TypeOrmModule.forFeature([User], 'postgres'),
+        TypeOrmModule.forFeature([User, Role, RolePermission], 'postgres'),
         JwtModule.register({
             privateKey: privateKey,
             publicKey: publicKey,
@@ -23,6 +24,7 @@ const publicKey = fs.readFileSync(reqPath + 'keys/public.key', 'utf8');
             },
         }),
         ApiAuthModule,
+        CaslAbilityModule,
     ],
     controllers: [UserController],
     providers: [UserService],

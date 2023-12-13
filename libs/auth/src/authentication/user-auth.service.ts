@@ -1,5 +1,5 @@
 import { User } from '@app/common';
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
@@ -18,7 +18,7 @@ export class UserAuthService {
             const { password, ...payload } = user;
             return payload;
         } else {
-            throw new BadRequestException('Invalid credentials');
+            throw new UnauthorizedException('Invalid credentials');
         }
     }
 }
