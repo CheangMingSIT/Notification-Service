@@ -1,4 +1,4 @@
-import { ValidationPipe } from '@nestjs/common';
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NotificationApiModule } from './notification-api.module';
 
@@ -7,6 +7,9 @@ async function bootstrap() {
     app.useGlobalPipes(
         new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
     );
+    app.enableVersioning({
+        type: VersioningType.URI,
+    });
     await app.listen(3000);
 }
 bootstrap();

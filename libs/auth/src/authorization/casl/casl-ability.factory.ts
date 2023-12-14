@@ -7,12 +7,13 @@ import {
 import { Injectable } from '@nestjs/common';
 import { CaslAbilityService } from './casl-ability.service';
 
-const Subject = ['User', 'ApiKey', 'NotificationRecord', 'all'] as const;
 const Actions = ['manage', 'create', 'read', 'update', 'delete'] as const;
+const Subject = ['User', 'ApiKey', 'NotificationRecord', 'all'] as const;
+
 export type AppAbility = MongoAbility<
     [
-        (typeof Actions)[number] | Exclude<(typeof Subject)[number], 'all'>,
-        (typeof Subject)[number] | Exclude<(typeof Subject)[number], 'all'>,
+        (typeof Actions)[number] | Exclude<(typeof Actions)[number], null>,
+        (typeof Subject)[number] | Exclude<(typeof Subject)[number], null>,
     ]
 >;
 
@@ -20,7 +21,7 @@ export type AppAbility = MongoAbility<
 export class CaslAbilityFactory {
     constructor(private readonly caslAbilityService: CaslAbilityService) {}
     async createForUser(user: any) {
-        const { can, cannot, build } = new AbilityBuilder<AppAbility>(
+        const { can, build } = new AbilityBuilder<AppAbility>(
             createMongoAbility,
         );
         const response = await this.caslAbilityService.identifyAbility(
@@ -33,7 +34,7 @@ export class CaslAbilityFactory {
             );
         });
         if (user === true) {
-            can('read', 'ApiKey');
+            can('read', 'NotificationRecord');
         }
         return build({
             detectSubjectType: (item) =>

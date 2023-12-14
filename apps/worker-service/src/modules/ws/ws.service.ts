@@ -4,11 +4,18 @@ import {
     QUEUE_SMS,
     RabbitmqService,
 } from '@app/common';
-
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+
+interface MailReponse {
+    response: string;
+} // Mock Response
+
+interface SMSReponse {
+    cancelled: boolean;
+} // Mock Response
 
 @Injectable()
 export class WsService implements OnApplicationBootstrap {
@@ -65,11 +72,19 @@ export class WsService implements OnApplicationBootstrap {
                 },
             ];
         }
+
+        function mail(): Promise<MailReponse> {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    console.log('Sending email...');
+                    resolve({ response: '250' });
+                }, 2000);
+            });
+        } // Mock Mail Reponse
+
         try {
-            const response = await this.mailerService.sendMail(payload);
-            // const response = {
-            //     response: '250 OK',
-            // }; // Mock response
+            // const response = await this.mailerService.sendMail(payload);
+            const response = await mail();
             if (response.response.includes('250')) {
                 this.updateStatus(emailPayload.uuid, 'SUCCESS');
             } else {
@@ -82,6 +97,15 @@ export class WsService implements OnApplicationBootstrap {
     }
 
     private async handleSMSMessage(smsPayload: any) {
+        function mail(): Promise<SMSReponse> {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    console.log('Sending SMS...');
+                    resolve({ cancelled: false });
+                }, 2000);
+            });
+        } // Mock Mail Reponse
+
         try {
             // const response = await fetch(
             //     'https://sms.api.sinch.com/xms/v1/5b121cd7f3544f81b6cb929e842ef141/batches',
@@ -100,9 +124,7 @@ export class WsService implements OnApplicationBootstrap {
             //     },
             // );
             // const data = await response.json();
-            const data = {
-                cancelled: false,
-            }; // Mock response
+            const data = await mail();
             if (data.cancelled === false) {
                 await this.updateStatus(smsPayload.uuid, 'SUCCESS');
             } else {

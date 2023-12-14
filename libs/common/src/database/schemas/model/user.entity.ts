@@ -18,7 +18,7 @@ export class User {
     @Column('varchar')
     password: string;
 
-    @Column('int', { default: '1' }) // 1 = admin | 2 = user etc
+    @Column('int', { default: '3' }) // 1 = admin | 3 = user etc
     roleId: number;
 
     @ManyToOne(() => Role, (role) => role.users)

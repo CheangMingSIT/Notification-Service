@@ -6,7 +6,11 @@ import {
     PolicyGuard,
     UserAuthGuard,
 } from '@app/auth';
-import { HttpExceptionFilter, NOTIFICATIONAPI, Serialize } from '@app/common';
+import {
+    HttpExceptionFilter,
+    NOTIFICATIONSYSTEM,
+    Serialize,
+} from '@app/common';
 import {
     Body,
     Controller,
@@ -15,17 +19,20 @@ import {
     UseFilters,
     UseGuards,
 } from '@nestjs/common';
+import { ApiBody, ApiTags } from '@nestjs/swagger';
 import { UserDeleteDto } from './dtos/user-delete.dto';
 import { UserRegistrationDto } from './dtos/user-registration.dto';
 import { UserUpdateDto } from './dtos/user-role-update.dto';
 import { UserDto } from './dtos/user.dto';
 import { UserService } from './user.service';
 
-@Controller(NOTIFICATIONAPI)
+@Controller({ version: '1', path: NOTIFICATIONSYSTEM })
+@ApiTags('User')
 export class UserController {
     constructor(private userService: UserService) {}
 
     @Post('signIn')
+    @ApiBody({ type: UserRegistrationDto })
     @UseGuards(UserAuthGuard)
     signIn(@Request() req: any) {
         return this.userService.signIn(req.user);
@@ -47,7 +54,7 @@ export class UserController {
     }
 
     @Post('deleteUser')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, PolicyGuard)
     @CheckPolicies((ability: AppAbility) => ability.can(Actions.Delete, 'User'))
     @UseFilters(HttpExceptionFilter)
     deleteUser(@Body() body: UserDeleteDto) {

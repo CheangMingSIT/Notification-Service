@@ -11,7 +11,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { emailInputDto } from './dtos/email-api.dto';
 import { EmailApiService } from './email-api.service';
 
-@Controller(NOTIFICATIONAPI)
+@Controller({ version: '1', path: NOTIFICATIONAPI })
 export class EmailApiController {
     constructor(private readonly emailApiService: EmailApiService) {}
 

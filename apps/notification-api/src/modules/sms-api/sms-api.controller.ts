@@ -4,7 +4,7 @@ import { HttpExceptionFilter, NOTIFICATIONAPI } from '@app/common';
 import { smsInputDto } from './dtos/sms.dto';
 import { SmsApiService } from './sms-api.service';
 
-@Controller(NOTIFICATIONAPI)
+@Controller({ version: '1', path: NOTIFICATIONAPI })
 export class SmsApiController {
     constructor(private readonly smsApiService: SmsApiService) {}
 

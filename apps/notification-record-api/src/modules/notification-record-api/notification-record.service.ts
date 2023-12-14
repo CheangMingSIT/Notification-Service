@@ -9,21 +9,35 @@ export class NotificationRecordService {
         @InjectModel(NotificationLog.name)
         private notificationLog: Model<NotificationLog>,
     ) {}
-    fetchNotificationLog(query: { recipient: string[]; sender: string[] }) {
+    async fetchNotificationLog(query: {
+        recipient: string[];
+        sender: string[];
+    }) {
         const { recipient, sender } = query;
         const receiver = Array.isArray(recipient) ? recipient : [recipient];
-        return this.notificationLog
-            .find({
-                recipient: { $in: receiver },
-            })
-            .exec()
-            .then(
-                (res) => {
-                    return res;
-                },
-                (error) => {
-                    console.error(error);
-                },
-            );
+        try {
+            const res = await this.notificationLog
+                .find({
+                    recipient: { $in: receiver },
+                })
+                .exec();
+            const transformedResult = res.map((item) => {
+                const channel = item.channel;
+                const message = Buffer.from(item.message).toString('utf-8');
+                const recipient = item.recipient;
+                const sender = item.sender;
+                const status = item.status;
+                return {
+                    channel,
+                    message,
+                    recipient,
+                    sender,
+                    status,
+                };
+            });
+            return transformedResult;
+        } catch (error) {
+            console.error(error);
+        }
     }
 }
