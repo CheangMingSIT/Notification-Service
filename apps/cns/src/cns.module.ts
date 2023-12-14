@@ -17,4 +17,4 @@ import { UserModule } from './modules/user/user.module';
         NotificationRecordModule,
     ],
 })
-export class NotificationRecordApiModule {}
+export class CnsModule {}

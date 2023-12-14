@@ -5,10 +5,10 @@ import {
     SwaggerDocumentOptions,
     SwaggerModule,
 } from '@nestjs/swagger';
-import { NotificationRecordApiModule } from './notification-record-api.module';
+import { CnsModule } from './cns.module';
 
 async function bootstrap() {
-    const app = await NestFactory.create(NotificationRecordApiModule);
+    const app = await NestFactory.create(CnsModule);
     app.useGlobalPipes(
         new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
     );
@@ -32,7 +32,7 @@ async function bootstrap() {
     };
 
     const document = SwaggerModule.createDocument(app, config, options);
-    SwaggerModule.setup('notification-system-api', app, document);
+    SwaggerModule.setup('Common-Notification-System', app, document);
     await app.listen(5051);
 }
 bootstrap();

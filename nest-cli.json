@@ -28,13 +28,13 @@
                 "watchAssets": true
             }
         },
-        "notification-record-api": {
+        "cns": {
             "type": "application",
-            "root": "apps/notification-record-api",
+            "root": "apps/cns",
             "entryFile": "main",
-            "sourceRoot": "apps/notification-record-api/src",
+            "sourceRoot": "apps/cns/src",
             "compilerOptions": {
-                "tsConfigPath": "apps/notification-record-api/tsconfig.app.json"
+                "tsConfigPath": "apps/cns/tsconfig.app.json"
             }
         },
         "dlx-notification-api": {

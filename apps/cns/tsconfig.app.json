@@ -2,7 +2,7 @@
     "extends": "../../tsconfig.json",
     "compilerOptions": {
         "declaration": false,
-        "outDir": "../../dist/apps/notification-record-api"
+        "outDir": "../../dist/apps/cns"
     },
     "include": ["src/**/*"],
     "exclude": ["node_modules", "dist", "test", "**/*spec.ts"]
