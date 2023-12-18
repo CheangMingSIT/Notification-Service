@@ -19,7 +19,7 @@ import {
     UseFilters,
     UseGuards,
 } from '@nestjs/common';
-import { ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
 import { UserDeleteDto } from './dtos/user-delete.dto';
 import { UserRegistrationDto } from './dtos/user-registration.dto';
 import { UserUpdateDto } from './dtos/user-role-update.dto';
@@ -46,6 +46,8 @@ export class UserController {
     }
 
     @Post('updateUser')
+    @ApiBody({ type: UserUpdateDto })
+    @ApiBearerAuth()
     @UseGuards(JwtAuthGuard, PolicyGuard)
     @CheckPolicies((ability: AppAbility) => ability.can(Actions.Update, 'User'))
     @UseFilters(HttpExceptionFilter)
@@ -54,6 +56,8 @@ export class UserController {
     }
 
     @Post('deleteUser')
+    @ApiBody({ type: UserDeleteDto })
+    @ApiBearerAuth()
     @UseGuards(JwtAuthGuard, PolicyGuard)
     @CheckPolicies((ability: AppAbility) => ability.can(Actions.Delete, 'User'))
     @UseFilters(HttpExceptionFilter)
