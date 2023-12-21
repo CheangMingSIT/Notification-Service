@@ -1,8 +1,8 @@
 import { Actions, AppAbility, CheckPolicies, PolicyGuard } from '@app/auth';
-import { NOTIFICATIONSYSTEM } from '@app/common';
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { HttpExceptionFilter, NOTIFICATIONSYSTEM } from '@app/common';
+import { Controller, Get, Query, UseFilters, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { ApiAuthGuard } from '../api-auth/guard/api-auth.guard';
+import { ApiAuthGuard } from '../apiKey-auth/guard/api-auth.guard';
 import { LogDto } from './dtos/log.dto';
 import { NotificationRecordService } from './notification-record.service';
 
@@ -18,6 +18,7 @@ export class NotificationRecordController {
     @ApiSecurity('ApiKeyAuth')
     @ApiBearerAuth()
     @UseGuards(ApiAuthGuard, PolicyGuard)
+    @UseFilters(HttpExceptionFilter)
     @CheckPolicies((ability: AppAbility) =>
         ability.can(Actions.Read, 'NotificationRecord'),
     )

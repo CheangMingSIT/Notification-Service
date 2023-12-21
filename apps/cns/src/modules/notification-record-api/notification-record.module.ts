@@ -1,8 +1,8 @@
-import { CaslAbilityModule, UserAuthModule } from '@app/auth';
+import { CaslAbilityModule, UserValidationModule } from '@app/auth';
 import { NotificationLog, NotificationLogSchema } from '@app/common';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ApiAuthModule } from '../api-auth/api-auth.module';
+import { ApiAuthModule } from '../apiKey-auth/api-auth.module';
 import { NotificationRecordController } from './notification-record.controller';
 import { NotificationRecordService } from './notification-record.service';
 
@@ -12,7 +12,7 @@ import { NotificationRecordService } from './notification-record.service';
             { name: NotificationLog.name, schema: NotificationLogSchema },
         ]),
         ApiAuthModule,
-        UserAuthModule,
+        UserValidationModule,
         CaslAbilityModule,
     ],
     controllers: [NotificationRecordController],

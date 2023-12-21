@@ -1,2 +1,2 @@
-export * from './authentication';
-export * from './authorization';
+export * from './authentication-guard';
+export * from './authorization-guard';

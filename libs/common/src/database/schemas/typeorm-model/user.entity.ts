@@ -21,6 +21,9 @@ export class User {
     @Column('int', { default: '3' }) // 1 = admin | 3 = user etc
     roleId: number;
 
+    @Column('varchar', { nullable: true })
+    refreshToken: string;
+
     @ManyToOne(() => Role, (role) => role.users)
     @JoinColumn([{ name: 'roleId', referencedColumnName: 'id' }])
     role: Role;
