@@ -4,6 +4,7 @@ import {
     JoinColumn,
     ManyToOne,
     PrimaryGeneratedColumn,
+    Relation,
 } from 'typeorm';
 import { Role } from './role.entity';
 
@@ -26,5 +27,5 @@ export class User {
 
     @ManyToOne(() => Role, (role) => role.users)
     @JoinColumn([{ name: 'roleId', referencedColumnName: 'id' }])
-    role: Role;
+    role: Relation<Role>;
 }

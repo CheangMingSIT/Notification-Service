@@ -22,17 +22,12 @@ export class NotificationRecordService {
                 .limit(limit)
                 .exec();
             const transformedResult = res.map((item) => {
-                const channel = item.channel;
-                const message = Buffer.from(item.message).toString('utf-8');
-                const recipient = item.recipient;
-                const sender = item.sender;
-                const status = item.status;
                 return {
-                    channel,
-                    message,
-                    recipient,
-                    sender,
-                    status,
+                    channel: item.channel,
+                    message: Buffer.from(item.message).toString('utf-8'),
+                    recipient: item.recipient,
+                    sender: item.sender,
+                    status: item.status,
                 };
             });
             return transformedResult;

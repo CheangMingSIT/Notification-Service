@@ -4,6 +4,7 @@ import {
     JoinColumn,
     OneToMany,
     PrimaryGeneratedColumn,
+    Relation,
 } from 'typeorm';
 import { RolePermission } from './role-permission.entity';
 
@@ -25,5 +26,5 @@ export class Permission {
     @JoinColumn([
         { name: 'permissionId', referencedColumnName: 'permissionId' },
     ])
-    rolePermissions: RolePermission[];
+    rolePermissions: Relation<RolePermission[]>;
 }

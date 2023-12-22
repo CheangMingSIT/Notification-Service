@@ -7,6 +7,8 @@ import {
 } from '@nestjs/swagger';
 import { CnsModule } from './cns.module';
 
+declare const module: any;
+
 async function bootstrap() {
     const app = await NestFactory.create(CnsModule);
     app.useGlobalPipes(
@@ -33,6 +35,11 @@ async function bootstrap() {
 
     const document = SwaggerModule.createDocument(app, config, options);
     SwaggerModule.setup('Common-Notification-System', app, document);
-    await app.listen(5051);
+    await app.listen(3050);
+
+    if (module.hot) {
+        module.hot.accept();
+        module.hot.dispose(() => app.close());
+    }
 }
 bootstrap();

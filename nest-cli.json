@@ -3,9 +3,11 @@
     "collection": "@nestjs/schematics",
     "sourceRoot": "apps/notification-api/src",
     "compilerOptions": {
+        "builder": "swc",
         "deleteOutDir": true,
         "webpack": true,
-        "tsConfigPath": "apps/notification-api/tsconfig.app.json"
+        "tsConfigPath": "apps/notification-api/tsconfig.app.json",
+        "typeCheck": true
     },
     "projects": {
         "notification-api": {
@@ -14,7 +16,9 @@
             "entryFile": "main",
             "sourceRoot": "apps/notification-api/src",
             "compilerOptions": {
-                "tsConfigPath": "apps/notification-api/tsconfig.app.json"
+                "builder": "swc",
+                "tsConfigPath": "apps/notification-api/tsconfig.app.json",
+                "typeCheck": true
             }
         },
         "worker-service": {
@@ -23,9 +27,11 @@
             "entryFile": "main",
             "sourceRoot": "apps/worker-service/src",
             "compilerOptions": {
+                "builder": "swc",
                 "tsConfigPath": "apps/worker-service/tsconfig.app.json",
                 "assets": ["template/*.hbs"],
-                "watchAssets": true
+                "watchAssets": true,
+                "typeCheck": true
             }
         },
         "cns": {
@@ -34,7 +40,9 @@
             "entryFile": "main",
             "sourceRoot": "apps/cns/src",
             "compilerOptions": {
-                "tsConfigPath": "apps/cns/tsconfig.app.json"
+                "builder": "swc",
+                "tsConfigPath": "apps/cns/tsconfig.app.json",
+                "typeCheck": true
             }
         },
         "dlx-notification-api": {
@@ -43,7 +51,9 @@
             "entryFile": "main",
             "sourceRoot": "apps/dlx-notification-api/src",
             "compilerOptions": {
-                "tsConfigPath": "apps/dlx-notification-api/tsconfig.app.json"
+                "builder": "swc",
+                "tsConfigPath": "apps/dlx-notification-api/tsconfig.app.json",
+                "typeCheck": true
             }
         },
         "common": {
@@ -52,9 +62,11 @@
             "entryFile": "index",
             "sourceRoot": "libs/common/src",
             "compilerOptions": {
+                "builder": "swc",
                 "tsConfigPath": "libs/common/tsconfig.lib.json",
                 "assets": ["keys/*.key"],
-                "watchAssets": true
+                "watchAssets": true,
+                "typeCheck": true
             }
         },
         "auth": {
@@ -63,7 +75,9 @@
             "entryFile": "index",
             "sourceRoot": "libs/auth/src",
             "compilerOptions": {
-                "tsConfigPath": "libs/auth/tsconfig.lib.json"
+                "builder": "swc",
+                "tsConfigPath": "libs/auth/tsconfig.lib.json",
+                "typeCheck": true
             }
         },
         "config": {
@@ -72,7 +86,9 @@
             "entryFile": "index",
             "sourceRoot": "libs/config/src",
             "compilerOptions": {
-                "tsConfigPath": "libs/config/tsconfig.lib.json"
+                "builder": "swc",
+                "tsConfigPath": "libs/config/tsconfig.lib.json",
+                "typeCheck": true
             }
         }
     },

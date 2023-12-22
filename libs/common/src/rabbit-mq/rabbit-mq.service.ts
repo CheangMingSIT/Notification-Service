@@ -1,26 +1,24 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import {
-    connect,
-    ChannelWrapper,
     AmqpConnectionManager,
+    ChannelWrapper,
+    connect,
 } from 'amqp-connection-manager';
 import {
+    DLQ_EMAIL,
+    DLQ_SMS,
+    DLX_EXCHANGE,
+    EX_NOTIFICATION,
     QUEUE_EMAIL,
     QUEUE_SMS,
-    EX_NOTIFICATION,
     RK_NOTIFICATION_EMAIL,
     RK_NOTIFICATION_SMS,
-    DLX_EXCHANGE,
-    DLQ_SMS,
-    DLQ_EMAIL,
 } from '../constants';
-import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class RabbitmqService implements OnModuleInit {
-    constructor(
-        private readonly configService: ConfigService, // Remove @Inject as it's not needed
-    ) {}
+    constructor(private readonly configService: ConfigService) {}
     // Queue Service interface
     private channel: ChannelWrapper;
     private connection: AmqpConnectionManager;
