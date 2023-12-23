@@ -34,14 +34,14 @@
                 "typeCheck": true
             }
         },
-        "cns": {
+        "cns-notification-record": {
             "type": "application",
-            "root": "apps/cns",
+            "root": "apps/cns-notification-record",
             "entryFile": "main",
-            "sourceRoot": "apps/cns/src",
+            "sourceRoot": "apps/cns-notification-record/src",
             "compilerOptions": {
                 "builder": "swc",
-                "tsConfigPath": "apps/cns/tsconfig.app.json",
+                "tsConfigPath": "apps/cns-notification-record/tsconfig.app.json",
                 "typeCheck": true
             }
         },
@@ -89,6 +89,33 @@
                 "builder": "swc",
                 "tsConfigPath": "libs/config/tsconfig.lib.json",
                 "typeCheck": true
+            }
+        },
+        "cns-authentication": {
+            "type": "application",
+            "root": "apps/cns-authentication",
+            "entryFile": "main",
+            "sourceRoot": "apps/cns-authentication/src",
+            "compilerOptions": {
+                "tsConfigPath": "apps/cns-authentication/tsconfig.app.json"
+            }
+        },
+        "cns-user": {
+            "type": "application",
+            "root": "apps/cns-user",
+            "entryFile": "main",
+            "sourceRoot": "apps/cns-user/src",
+            "compilerOptions": {
+                "tsConfigPath": "apps/cns-user/tsconfig.app.json"
+            }
+        },
+        "cns-api-key": {
+            "type": "application",
+            "root": "apps/cns-api-key",
+            "entryFile": "main",
+            "sourceRoot": "apps/cns-api-key/src",
+            "compilerOptions": {
+                "tsConfigPath": "apps/cns-api-key/tsconfig.app.json"
             }
         }
     },
