@@ -64,7 +64,7 @@
             "compilerOptions": {
                 "builder": "swc",
                 "tsConfigPath": "libs/common/tsconfig.lib.json",
-                "assets": ["keys/*.key"],
+                "assets": ["keys/*.pem"],
                 "watchAssets": true,
                 "typeCheck": true
             }
