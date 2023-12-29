@@ -29,7 +29,7 @@ async function bootstrap() {
     };
 
     const document = SwaggerModule.createDocument(app, config, options);
-    SwaggerModule.setup('User', app, document);
+    SwaggerModule.setup('cns-user', app, document);
     await app.listen(3070);
 
     if (module.hot) {

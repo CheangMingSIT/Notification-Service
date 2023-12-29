@@ -18,7 +18,7 @@ async function bootstrap() {
         type: VersioningType.URI,
     });
     const config = new DocumentBuilder()
-        .setTitle('Notification System')
+        .setTitle('Notification Record')
         .setDescription('CM is the god of notification system api story')
         .setVersion('1.0')
         .addBearerAuth()
@@ -34,7 +34,7 @@ async function bootstrap() {
     };
 
     const document = SwaggerModule.createDocument(app, config, options);
-    SwaggerModule.setup('Common-Notification-System', app, document);
+    SwaggerModule.setup('cns-notification-record', app, document);
     await app.listen(3050);
 
     if (module.hot) {
