@@ -21,7 +21,7 @@ interface SMSReponse {
 export class WsService implements OnApplicationBootstrap {
     constructor(
         private readonly rabbitMQService: RabbitmqService,
-        private mailerService: MailerService,
+        private readonly mailerService: MailerService,
         @InjectModel(NotificationLog.name)
         private notificationLogModel: Model<NotificationLog>,
     ) {}

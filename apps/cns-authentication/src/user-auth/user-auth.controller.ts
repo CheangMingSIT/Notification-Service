@@ -1,4 +1,9 @@
-import { JwtAuthGuard, RefreshTokenGuard, UserAuthGuard } from '@app/auth';
+import {
+    JwtAuthGuard,
+    RefreshTokenGuard,
+    ResetPasswordGuard,
+    UserAuthGuard,
+} from '@app/auth';
 import {
     HttpExceptionFilter,
     NOTIFICATIONSYSTEM,
@@ -13,9 +18,11 @@ import {
     UseFilters,
     UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ForgotPasswordDto } from './dtos/forgot-password.dto';
+import { ResetPassword } from './dtos/reset-password.dto';
 import { UserExposeDto } from './dtos/user-expose.dto';
-import { userDto } from './dtos/user.dto';
+import { UserDto } from './dtos/user.dto';
 import { UserAuthService } from './user-auth.service';
 
 @Controller({ version: '1', path: NOTIFICATIONSYSTEM })
@@ -24,7 +31,7 @@ export class UserAuthController {
     constructor(private authService: UserAuthService) {}
 
     @Post('signIn')
-    @ApiBody({ type: userDto })
+    @ApiBody({ type: UserDto })
     @UseGuards(UserAuthGuard)
     signIn(@Request() req: any) {
         return this.authService.signIn(req.user);
@@ -33,7 +40,7 @@ export class UserAuthController {
     @Post('signUp')
     @Serialize(UserExposeDto)
     @UseFilters(HttpExceptionFilter)
-    signUp(@Body() body: userDto) {
+    signUp(@Body() body: UserDto) {
         return this.authService.signUp(body);
     }
 
@@ -49,5 +56,18 @@ export class UserAuthController {
     @Get('refreshToken')
     refreshToken(@Request() req: any) {
         return this.authService.refreshToken(req.user);
+    }
+
+    @Post('forgotPassword')
+    forgotPassword(@Body() body: ForgotPasswordDto) {
+        return this.authService.requestPasswordResetLink(body.email);
+    }
+
+    @Post('resetPassword')
+    @ApiQuery({ name: 'token', type: String })
+    @ApiBody({ type: ResetPassword })
+    @UseGuards(ResetPasswordGuard)
+    resetPassword(@Request() req: any, @Body() body: { password: string }) {
+        return this.authService.resetPassword(req.user, body.password);
     }
 }

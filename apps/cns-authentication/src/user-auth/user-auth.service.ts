@@ -1,22 +1,26 @@
 import { User } from '@app/common';
+import { MailerService } from '@nestjs-modules/mailer';
 import {
     BadRequestException,
     ForbiddenException,
     HttpException,
     HttpStatus,
     Injectable,
+    NotFoundException,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
-import { userDto } from './dtos/user.dto';
 
 @Injectable()
 export class UserAuthService {
     constructor(
         private jwtService: JwtService,
         @InjectRepository(User, 'postgres') private userRepo: Repository<User>,
+        private readonly configService: ConfigService,
+        private readonly mailerService: MailerService,
     ) {}
 
     async hashPassword(password: string) {
@@ -25,7 +29,7 @@ export class UserAuthService {
         return hash;
     }
 
-    async signIn(user: any) {
+    async signIn(user: any): Promise<Object> {
         const payload = {
             uuid: user.uuid,
             email: user.email,
@@ -37,10 +41,10 @@ export class UserAuthService {
         await this.userRepo.update(user.uuid, {
             refreshToken: hash_token,
         });
-        return access_token;
+        return { token: access_token };
     }
 
-    async signUp(body: userDto) {
+    async signUp(body: { email: string; password: string }) {
         const { email, password } = body;
         const existingUser = await this.userRepo.findOneBy({ email });
         if (existingUser) {
@@ -80,7 +84,7 @@ export class UserAuthService {
         email: string;
         roleId: string;
         refreshToken: string;
-    }) {
+    }): Promise<string> {
         const { uuid, email, roleId, refreshToken } = user;
         const payload = await this.userRepo.findOneBy({ uuid });
         if (!payload || !payload.refreshToken) {
@@ -103,5 +107,70 @@ export class UserAuthService {
             refreshToken: hash_token,
         });
         return token;
+    }
+
+    async requestPasswordResetLink(email: string) {
+        const user = await this.userRepo.findOneBy({ email });
+        if (!user) {
+            throw new NotFoundException('User does not exist');
+        }
+        const payload = {
+            uuid: user.uuid,
+            email: user.email,
+            roleId: user.roleId,
+        };
+        const token = await this.jwtService.signAsync(payload, {
+            expiresIn: '1m',
+        });
+        const reset_password_link =
+            this.configService.get('RESET_PASSWORD_URL');
+
+        const message = {
+            to: user.email,
+            subject: 'Reset Password',
+            text: `Reset Password Link: ${reset_password_link}?token=${token}`,
+        };
+        try {
+            const response = await this.mailerService.sendMail(message);
+            if (response.response.includes('250')) {
+                await this.userRepo.update(user, {
+                    refreshToken: token,
+                });
+            }
+            return {
+                status: HttpStatus.OK,
+                message: 'Reset Password Link sent successfully',
+            };
+        } catch (error) {
+            throw new BadRequestException(error.message);
+        }
+    }
+
+    async resetPassword(user: any, password: string) {
+        const existingUser = await this.userRepo.findOneBy({ uuid: user.uuid });
+        if (!existingUser) {
+            throw new NotFoundException('User does not exist');
+        }
+        const hash = await this.hashPassword(password);
+        await this.userRepo.update(existingUser, {
+            password: hash,
+        });
+        const newToken = await this.jwtService.signAsync({
+            uuid: user.uuid,
+            email: user.email,
+            roleId: user.roleId,
+        });
+        try {
+            const hash_token = await this.hashPassword(newToken);
+            await this.userRepo.update(user.uuid, {
+                refreshToken: hash_token,
+            });
+            return {
+                status: HttpStatus.OK,
+                message: 'Password reset successfully',
+            };
+        } catch (error) {
+            throw new BadRequestException(error.message);
+        }
     }
 }

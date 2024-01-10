@@ -29,6 +29,7 @@ async function bootstrap() {
     };
     const document = SwaggerModule.createDocument(app, config, options);
     SwaggerModule.setup('cns-auth', app, document);
+    app.enableCors();
     await app.listen(3060);
 
     if (module.hot) {
