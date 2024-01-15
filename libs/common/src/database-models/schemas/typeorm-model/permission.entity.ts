@@ -10,7 +10,7 @@ import { RolePermission } from './role-permission.entity';
 
 @Entity('Permission', { schema: 'User', database: 'User' })
 export class Permission {
-    @PrimaryGeneratedColumn('rowid', { name: 'permissionId' })
+    @PrimaryGeneratedColumn('identity', { name: 'permissionId' })
     permissionId: number;
 
     @Column('varchar')

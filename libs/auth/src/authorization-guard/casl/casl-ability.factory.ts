@@ -8,7 +8,13 @@ import { Injectable } from '@nestjs/common';
 import { CaslAbilityService } from './casl-ability.service';
 
 const Actions = ['manage', 'create', 'read', 'update', 'delete'] as const;
-const Subject = ['User', 'ApiKey', 'NotificationRecord', 'all'] as const;
+const Subject = [
+    'User',
+    'ApiKey',
+    'NotificationRecord',
+    'Permission',
+    'all',
+] as const;
 
 export type AppAbility = MongoAbility<
     [

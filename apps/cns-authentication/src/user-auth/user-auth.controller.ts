@@ -20,6 +20,7 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ForgotPasswordDto } from './dtos/forgot-password.dto';
+import { loginDto } from './dtos/login.dto';
 import { ResetPassword } from './dtos/reset-password.dto';
 import { UserExposeDto } from './dtos/user-expose.dto';
 import { UserDto } from './dtos/user.dto';
@@ -31,7 +32,7 @@ export class UserAuthController {
     constructor(private authService: UserAuthService) {}
 
     @Post('signIn')
-    @ApiBody({ type: UserDto })
+    @ApiBody({ type: loginDto })
     @UseGuards(UserAuthGuard)
     signIn(@Request() req: any) {
         return this.authService.signIn(req.user);
@@ -65,9 +66,8 @@ export class UserAuthController {
 
     @Post('resetPassword')
     @ApiQuery({ name: 'token', type: String })
-    @ApiBody({ type: ResetPassword })
     @UseGuards(ResetPasswordGuard)
-    resetPassword(@Request() req: any, @Body() body: { password: string }) {
+    resetPassword(@Request() req: any, @Body() body: ResetPassword) {
         return this.authService.resetPassword(req.user, body.password);
     }
 }

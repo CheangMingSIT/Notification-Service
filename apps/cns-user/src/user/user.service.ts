@@ -1,5 +1,10 @@
 import { PaginationDto, User } from '@app/common';
-import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+    BadRequestException,
+    HttpException,
+    HttpStatus,
+    Injectable,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { UserRoleIdDto } from './dtos/user-role-update.dto';
@@ -32,7 +37,7 @@ export class UserService {
                 },
             };
         } catch (e) {
-            throw new BadRequestException(e.message);
+            throw new HttpException(e.message, e.status);
         }
     }
 

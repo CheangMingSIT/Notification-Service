@@ -118,6 +118,15 @@
       "compilerOptions": {
         "tsConfigPath": "apps/cns-microservices-monitoring/tsconfig.app.json"
       }
+    },
+    "cns-permission": {
+      "type": "application",
+      "root": "apps/cns-permission",
+      "entryFile": "main",
+      "sourceRoot": "apps/cns-permission/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/cns-permission/tsconfig.app.json"
+      }
     }
   },
   "monorepo": true,

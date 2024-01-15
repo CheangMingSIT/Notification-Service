@@ -14,6 +14,9 @@ export class User {
     uuid: string;
 
     @Column('varchar')
+    name: string;
+
+    @Column('varchar')
     email: string;
 
     @Column('varchar')

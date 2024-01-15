@@ -6,7 +6,6 @@ import {
     HttpException,
     HttpStatus,
     Injectable,
-    NotFoundException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -44,15 +43,16 @@ export class UserAuthService {
         return { token: access_token };
     }
 
-    async signUp(body: { email: string; password: string }) {
-        const { email, password } = body;
+    async signUp(body: { name: string; email: string; password: string }) {
+        const { name, email, password } = body;
         const existingUser = await this.userRepo.findOneBy({ email });
         if (existingUser) {
-            throw new BadRequestException('User already exists');
+            throw new HttpException('User already exists', HttpStatus.OK);
         }
         const hash = await this.hashPassword(password);
         try {
             const newUser = this.userRepo.create({
+                name,
                 email,
                 password: hash,
             });
@@ -112,7 +112,7 @@ export class UserAuthService {
     async requestPasswordResetLink(email: string) {
         const user = await this.userRepo.findOneBy({ email });
         if (!user) {
-            throw new NotFoundException('User does not exist');
+            throw new HttpException('User does not exist', HttpStatus.OK);
         }
         const payload = {
             uuid: user.uuid,
@@ -120,6 +120,8 @@ export class UserAuthService {
             roleId: user.roleId,
         };
         const token = await this.jwtService.signAsync(payload, {
+            secret: this.configService.get('JWT_SECRET'),
+            algorithm: 'HS256',
             expiresIn: '1m',
         });
         const reset_password_link =
@@ -138,6 +140,7 @@ export class UserAuthService {
                 });
             }
             return {
+                token: token,
                 status: HttpStatus.OK,
                 message: 'Reset Password Link sent successfully',
             };
@@ -149,7 +152,7 @@ export class UserAuthService {
     async resetPassword(user: any, password: string) {
         const existingUser = await this.userRepo.findOneBy({ uuid: user.uuid });
         if (!existingUser) {
-            throw new NotFoundException('User does not exist');
+            throw new HttpException('User does not exist', HttpStatus.OK);
         }
         const hash = await this.hashPassword(password);
         await this.userRepo.update(existingUser, {
