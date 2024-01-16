@@ -9,9 +9,9 @@ import { RolepermissionModule } from './rolepermission/rolepermission.module';
     imports: [
         ConfigModule.forRoot({ isGlobal: true }),
         PermissionModule,
+        RolepermissionModule,
         PostgresDBModule,
         UserValidationModule,
-        RolepermissionModule,
     ],
     controllers: [],
 })

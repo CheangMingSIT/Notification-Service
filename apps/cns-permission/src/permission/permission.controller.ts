@@ -1,4 +1,4 @@
-import { JwtAuthGuard } from '@app/auth';
+import { CheckPolicies, JwtAuthGuard } from '@app/auth';
 import {
     HttpExceptionFilter,
     NOTIFICATIONSYSTEM,
@@ -25,11 +25,12 @@ import { PermissionService } from './permission.service';
 @ApiBearerAuth()
 @ApiTags('Permissions')
 export class PermissionController {
-    constructor(private permissionService: PermissionService) {}
+    constructor(private readonly permissionService: PermissionService) {}
 
     @Get('listPermissions')
     @UseGuards(JwtAuthGuard)
     @UseFilters(HttpExceptionFilter)
+    @CheckPolicies((ability: any) => ability.can('read', 'Permission'))
     listPermissions(@Query() query: PaginationDto): Promise<any> {
         return this.permissionService.listPermissions(query);
     }
@@ -37,6 +38,7 @@ export class PermissionController {
     @Post('createPermission')
     @UseGuards(JwtAuthGuard)
     @UseFilters(HttpExceptionFilter)
+    @CheckPolicies((ability: any) => ability.can('create', 'Permission'))
     createPermission(@Body() body: PermissionDto) {
         return this.permissionService.createPermission(body);
     }
@@ -45,6 +47,7 @@ export class PermissionController {
     @ApiParam({ name: 'permissionId', type: PermissionIdDto })
     @UseGuards(JwtAuthGuard)
     @UseFilters(HttpExceptionFilter)
+    @CheckPolicies((ability: any) => ability.can('update', 'Permission'))
     updatePermission(
         @Param('permissionId') permission: PermissionIdDto,
         @Body() body: PermissionDto,
@@ -59,6 +62,7 @@ export class PermissionController {
     @ApiParam({ name: 'permissionId', type: PermissionIdDto })
     @UseGuards(JwtAuthGuard)
     @UseFilters(HttpExceptionFilter)
+    @CheckPolicies((ability: any) => ability.can('delete', 'Permission'))
     deletePermission(@Param('permissionId') permissionId: number) {
         return this.permissionService.deletePermission(permissionId);
     }

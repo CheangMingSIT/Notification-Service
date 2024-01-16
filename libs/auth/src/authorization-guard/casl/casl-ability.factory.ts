@@ -13,6 +13,7 @@ const Subject = [
     'ApiKey',
     'NotificationRecord',
     'Permission',
+    'RolePermission',
     'all',
 ] as const;
 
@@ -41,6 +42,7 @@ export class CaslAbilityFactory {
         });
         if (user === true) {
             can('read', 'NotificationRecord');
+            can('create', 'RolePermission');
         }
         return build({
             detectSubjectType: (item) =>

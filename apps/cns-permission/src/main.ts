@@ -30,7 +30,7 @@ async function bootstrap() {
     };
     const document = SwaggerModule.createDocument(app, config, options);
     SwaggerModule.setup('cns-permission', app, document);
-    app.enableCors();
+    // app.enableCors();
     await app.listen(3040);
 
     if (module.hot) {
