@@ -8,14 +8,17 @@ import {
     UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { emailInputDto } from './dtos/email-api.dto';
 import { EmailApiService } from './email-api.service';
 
 @Controller({ version: '1', path: NOTIFICATIONAPI })
+@ApiTags('Email')
 export class EmailApiController {
     constructor(private readonly emailApiService: EmailApiService) {}
 
     @Post('/email')
+    @ApiConsumes('multipart/form-data')
     @UseInterceptors(FileInterceptor('file'))
     @UseFilters(HttpExceptionFilter)
     async publishEmail(

@@ -4,11 +4,7 @@ import {
     ResetPasswordGuard,
     UserAuthGuard,
 } from '@app/auth';
-import {
-    HttpExceptionFilter,
-    NOTIFICATIONSYSTEM,
-    Serialize,
-} from '@app/common';
+import { HttpExceptionFilter, NOTIFICATIONSYSTEM } from '@app/common';
 import {
     Body,
     Controller,
@@ -22,7 +18,6 @@ import { ApiBearerAuth, ApiBody, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { ForgotPasswordDto } from './dtos/forgot-password.dto';
 import { loginDto } from './dtos/login.dto';
 import { ResetPassword } from './dtos/reset-password.dto';
-import { UserExposeDto } from './dtos/user-expose.dto';
 import { UserDto } from './dtos/user.dto';
 import { UserAuthService } from './user-auth.service';
 
@@ -39,10 +34,10 @@ export class UserAuthController {
     }
 
     @Post('signUp')
-    @Serialize(UserExposeDto)
     @UseFilters(HttpExceptionFilter)
-    signUp(@Body() body: UserDto) {
-        return this.authService.signUp(body);
+    async signUp(@Body() body: UserDto): Promise<object> {
+        const result = await this.authService.signUp(body);
+        return result;
     }
 
     @UseGuards(JwtAuthGuard)

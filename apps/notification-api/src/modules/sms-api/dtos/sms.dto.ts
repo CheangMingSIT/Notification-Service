@@ -1,10 +1,4 @@
-import {
-    IsNotEmpty,
-    IsString,
-    IsArray,
-    IsNumberString,
-    IsMobilePhone,
-} from 'class-validator';
+import { IsArray, IsMobilePhone, IsNotEmpty, IsString } from 'class-validator';
 
 export class smsInputDto {
     @IsNotEmpty()
@@ -33,8 +27,4 @@ export class smsInputDto {
     @IsNotEmpty()
     @IsString()
     body: string;
-
-    @IsNotEmpty()
-    @IsNumberString()
-    template: number;
 }

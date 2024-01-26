@@ -56,8 +56,11 @@ export class UserAuthService {
                 email,
                 password: hash,
             });
-            const saveUser = await this.userRepo.save(newUser);
-            return saveUser;
+            await this.userRepo.save(newUser);
+            return {
+                status: HttpStatus.OK,
+                message: 'User created successfully',
+            };
         } catch (e) {
             throw new HttpException(
                 "Couldn't create user",

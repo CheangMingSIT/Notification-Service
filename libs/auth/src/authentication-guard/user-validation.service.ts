@@ -21,4 +21,13 @@ export class UserValidationService {
             throw new UnauthorizedException('Invalid credentials');
         }
     }
+
+    async validateRefreshToken(
+        uuid: string,
+        refreshToken: string,
+    ): Promise<boolean> {
+        const user = await this.userRepo.findOneBy({ uuid });
+        const isMatch = await bcrypt.compare(refreshToken, user.refreshToken);
+        return isMatch;
+    }
 }
