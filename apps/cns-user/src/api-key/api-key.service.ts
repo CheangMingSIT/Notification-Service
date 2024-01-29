@@ -1,8 +1,8 @@
-import { ApiKey } from '@app/common';
+import { ApiKeys } from '@app/common';
 import { Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
 import { randomBytes } from 'crypto';
-import { Model } from 'mongoose';
+import { Repository } from 'typeorm';
 
 interface ApiKeyRecord {
     readonly name: string;
@@ -11,28 +11,34 @@ interface ApiKeyRecord {
 @Injectable()
 export class ApiKeyService {
     constructor(
-        @InjectModel(ApiKey.name) private apiKeyRecord: Model<ApiKey>,
+        @InjectRepository(ApiKeys, 'postgres')
+        private apiKeyRepo: Repository<ApiKeys>,
     ) {}
 
-    async generateApiKey(name: string): Promise<string> {
+    async generateApiKey(name: string): Promise<Object> {
         const apiKey = randomBytes(32).toString('hex');
         const record: ApiKeyRecord = {
             name: name,
             apiKey: apiKey,
         };
         try {
-            const newApiKey = new this.apiKeyRecord(record);
-            await newApiKey.save();
+            const newApiKey = this.apiKeyRepo.create(record);
+            await this.apiKeyRepo.save(newApiKey);
+            return { Token: apiKey };
         } catch (error) {
             throw new error(error);
         }
-        return apiKey;
     }
 
-    async listApiKeys(): Promise<ApiKey[]> {
+    async listApiKeys(): Promise<ApiKeyRecord[]> {
         try {
-            const response = await this.apiKeyRecord.find();
-            return response;
+            const response = await this.apiKeyRepo.find();
+            return response.map((record) => {
+                return {
+                    name: record.name,
+                    apiKey: record.apiKey,
+                };
+            });
         } catch (error) {
             throw error;
         }

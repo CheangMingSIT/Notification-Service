@@ -1,16 +1,17 @@
-import { ApiKey } from '@app/common';
+import { ApiKeys } from '@app/common';
 import { Injectable, UnauthorizedException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class validateKeyService {
     constructor(
-        @InjectModel(ApiKey.name) private apiKeyRecord: Model<ApiKey>,
+        @InjectRepository(ApiKeys, 'postgres')
+        private apiKeyRepo: Repository<ApiKeys>,
     ) {}
 
     async validateApiKey(apikey: string): Promise<boolean> {
-        const apiKeyRecord = await this.apiKeyRecord.findOne({
+        const apiKeyRecord = await this.apiKeyRepo.findOneBy({
             apiKey: apikey,
         });
         if (!apiKeyRecord) {
