@@ -75,15 +75,6 @@
                 "tsConfigPath": "libs/config/tsconfig.lib.json"
             }
         },
-        "cns-authentication": {
-            "type": "application",
-            "root": "apps/cns-authentication",
-            "entryFile": "main",
-            "sourceRoot": "apps/cns-authentication/src",
-            "compilerOptions": {
-                "tsConfigPath": "apps/cns-authentication/tsconfig.app.json"
-            }
-        },
         "cns-user": {
             "type": "application",
             "root": "apps/cns-user",
@@ -93,15 +84,6 @@
                 "tsConfigPath": "apps/cns-user/tsconfig.app.json"
             }
         },
-        "cns-api-key": {
-            "type": "application",
-            "root": "apps/cns-api-key",
-            "entryFile": "main",
-            "sourceRoot": "apps/cns-api-key/src",
-            "compilerOptions": {
-                "tsConfigPath": "apps/cns-api-key/tsconfig.app.json"
-            }
-        },
         "cns-microservices-monitoring": {
             "type": "application",
             "root": "apps/cns-microservices-monitoring",
@@ -109,15 +91,6 @@
             "sourceRoot": "apps/cns-microservices-monitoring/src",
             "compilerOptions": {
                 "tsConfigPath": "apps/cns-microservices-monitoring/tsconfig.app.json"
-            }
-        },
-        "cns-permission": {
-            "type": "application",
-            "root": "apps/cns-permission",
-            "entryFile": "main",
-            "sourceRoot": "apps/cns-permission/src",
-            "compilerOptions": {
-                "tsConfigPath": "apps/cns-permission/tsconfig.app.json"
             }
         }
     },

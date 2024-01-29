@@ -31,17 +31,7 @@ export class HealthController {
                     'notification-record',
                     'http://localhost:3050/cns-notification-record',
                 ),
-            () =>
-                this.http.pingCheck(
-                    'authentication',
-                    'http://localhost:3060/cns-auth',
-                ),
             () => this.http.pingCheck('user', 'http://localhost:3070/cns-user'),
-            () =>
-                this.http.pingCheck(
-                    'apiKey',
-                    'http://localhost:3080/cns-apiKey',
-                ),
             () =>
                 this.typeorm.pingCheck('postgres', {
                     connection: this.postgresDb,

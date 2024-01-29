@@ -13,7 +13,7 @@
         "start:debug": "nest start --debug swc",
         "start:prod": "node dist/apps/notification-api/main",
         "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-        "start:cns": "concurrently \"nest start -b swc cns-authentication --watch\" \"nest start -b swc cns-user --watch\" \"nest start -b swc cns-api-key --watch\" \"nest start -b swc cns-notification-record --watch\" \"nest start -b swc cns-microservices-monitoring --watch\" \"nest start -b swc cns-permission --watch\"",
+        "start:cns": "concurrently \"nest start -b swc cns-user --watch\" \"nest start -b swc cns-notification-record --watch\" \"nest start -b swc cns-microservices-monitoring --watch\"",
         "start:notification": "concurrently \"nest start -b swc notification-api --watch\" \"nest start -b swc worker-service --watch\" \"nest start -b swc dlx-notification-api --watch\"",
         "test": "jest",
         "test:watch": "jest --watch",
