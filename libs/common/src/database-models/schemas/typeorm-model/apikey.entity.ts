@@ -1,4 +1,12 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Column,
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    PrimaryGeneratedColumn,
+    Relation,
+} from 'typeorm';
+import type { User } from './user.entity';
 
 @Entity('ApiKeys', { schema: 'User', database: 'User' })
 export class ApiKeys {
@@ -10,4 +18,13 @@ export class ApiKeys {
 
     @Column('varchar')
     apiKey: string;
+
+    @Column('uuid', { name: 'userId' })
+    userId: string;
+
+    @ManyToOne('User', (user: User) => user.apiKeys, {
+        createForeignKeyConstraints: false,
+    })
+    @JoinColumn([{ name: 'userId', referencedColumnName: 'uuid' }])
+    user: Relation<User>;
 }

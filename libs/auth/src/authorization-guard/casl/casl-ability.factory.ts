@@ -19,8 +19,8 @@ const Subject = [
 
 export type AppAbility = MongoAbility<
     [
-        (typeof Actions)[number] | Exclude<(typeof Actions)[number], null>,
-        (typeof Subject)[number] | Exclude<(typeof Subject)[number], null>,
+        (typeof Actions)[number],
+        (typeof Subject)[number] | Exclude<(typeof Subject)[number], 'all'>,
     ]
 >;
 
@@ -40,10 +40,6 @@ export class CaslAbilityFactory {
                 element.permission.subject as (typeof Subject)[number],
             );
         });
-        if (user === true) {
-            can('read', 'NotificationRecord');
-            can('create', 'RolePermission');
-        }
         return build({
             detectSubjectType: (item) =>
                 item as ExtractSubjectType<typeof Subject>,

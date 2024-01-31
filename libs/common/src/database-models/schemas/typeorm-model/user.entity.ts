@@ -3,10 +3,12 @@ import {
     Entity,
     JoinColumn,
     ManyToOne,
+    OneToMany,
     PrimaryGeneratedColumn,
     Relation,
 } from 'typeorm';
 import { Role } from './role.entity';
+import type { ApiKeys } from './apikey.entity';
 
 @Entity('User', { schema: 'User', database: 'User' })
 export class User {
@@ -27,6 +29,9 @@ export class User {
 
     @Column('varchar', { nullable: true })
     refreshToken: string;
+
+    @OneToMany('ApiKeys', (apiKeys: ApiKeys) => apiKeys.user)
+    apiKeys: ApiKeys[];
 
     @ManyToOne(() => Role, (role) => role.users)
     @JoinColumn([{ name: 'roleId', referencedColumnName: 'id' }])

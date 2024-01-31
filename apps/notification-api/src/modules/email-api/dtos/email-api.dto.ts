@@ -1,36 +1,33 @@
-import { ApiProperty } from '@nestjs/swagger';
-import {
-    IsEmail,
-    IsNotEmpty,
-    IsNumberString,
-    IsOptional,
-    IsString,
-} from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
-export class emailInputDto {
+export class EmailInputDto {
     @ApiProperty({ type: String, format: 'email' })
     @IsEmail()
     @IsNotEmpty()
     from: string;
 
-    @ApiProperty({ type: String, format: 'email' })
+    @ApiProperty({
+        type: Array,
+        items: { type: 'string', format: 'email' },
+    })
     @IsNotEmpty()
     @IsEmail({}, { each: true })
     to: string[];
 
-    @ApiProperty({ type: Array, format: 'email' })
+    @ApiPropertyOptional()
     @IsOptional()
     @IsEmail({}, { each: true })
     cc: string[];
 
-    @ApiProperty({ type: Array, format: 'email' })
-    @IsEmail()
+    @ApiPropertyOptional()
     @IsOptional()
-    bcc: string;
+    @IsEmail({}, { each: true })
+    bcc: string[];
 
-    @ApiProperty({ type: String, format: 'Subject' })
-    @IsString()
+    @ApiPropertyOptional()
     @IsOptional()
+    @IsString()
     subject: string;
 
     @ApiProperty({ type: String, format: 'Body' })
@@ -38,8 +35,10 @@ export class emailInputDto {
     @IsOptional()
     body: string;
 
-    @ApiProperty({ type: Number, format: 'Template' })
-    @IsNumberString()
+    @ApiPropertyOptional({
+        type: 'array',
+        items: { type: 'string', format: 'binary' },
+    })
     @IsOptional()
-    template: number;
+    files: any[];
 }

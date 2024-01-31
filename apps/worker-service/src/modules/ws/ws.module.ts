@@ -1,15 +1,17 @@
-import { Module } from '@nestjs/common';
 import {
+    ApiKeys,
     NotificationLog,
     NotificationLogSchema,
     RabbitMqModule,
 } from '@app/common';
-import { WsService } from './ws.service';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { PugAdapter } from '@nestjs-modules/mailer/dist/adapters/pug.adapter';
+import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MulterModule } from '@nestjs/platform-express';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { join } from 'path';
-import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
+import { WsService } from './ws.service';
 
 @Module({
     imports: [
@@ -20,6 +22,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
         MongooseModule.forFeature([
             { name: NotificationLog.name, schema: NotificationLogSchema },
         ]),
+        TypeOrmModule.forFeature([ApiKeys], 'postgres'),
         MailerModule.forRoot({
             transport: {
                 host: 'smtp.office365.com',
@@ -35,7 +38,7 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
             },
             template: {
                 dir: join(__dirname + '/template'),
-                adapter: new HandlebarsAdapter(),
+                adapter: new PugAdapter(),
                 options: {
                     strict: true,
                 },

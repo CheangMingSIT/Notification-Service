@@ -1,5 +1,5 @@
-import { ApiKeys } from '@app/common';
-import { Injectable } from '@nestjs/common';
+import { ApiKeys, PaginationDto } from '@app/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomBytes } from 'crypto';
 import { Repository } from 'typeorm';
@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 interface ApiKeyRecord {
     readonly name: string;
     readonly apiKey: string;
+    readonly userId: string;
 }
 @Injectable()
 export class ApiKeyService {
@@ -15,24 +16,33 @@ export class ApiKeyService {
         private apiKeyRepo: Repository<ApiKeys>,
     ) {}
 
-    async generateApiKey(name: string): Promise<Object> {
+    async generateApiKey(name: string, user_uuid: string): Promise<Object> {
         const apiKey = randomBytes(32).toString('hex');
         const record: ApiKeyRecord = {
             name: name,
             apiKey: apiKey,
+            userId: user_uuid,
         };
         try {
             const newApiKey = this.apiKeyRepo.create(record);
             await this.apiKeyRepo.save(newApiKey);
-            return { Token: apiKey };
+            return apiKey;
         } catch (error) {
-            throw new error(error);
+            throw new InternalServerErrorException("Couldn't generate api key");
         }
     }
 
-    async listApiKeys(): Promise<ApiKeyRecord[]> {
+    async listApiKeys(
+        user_uuid: string,
+        pagination: PaginationDto,
+    ): Promise<Object> {
+        const { page, limit } = pagination;
         try {
-            const response = await this.apiKeyRepo.find();
+            const response = await this.apiKeyRepo.find({
+                where: { userId: user_uuid },
+                skip: (page - 1) * limit,
+                take: limit,
+            });
             return response.map((record) => {
                 return {
                     name: record.name,
@@ -40,7 +50,7 @@ export class ApiKeyService {
                 };
             });
         } catch (error) {
-            throw error;
+            throw new InternalServerErrorException("Couldn't fetch api keys");
         }
     }
 }

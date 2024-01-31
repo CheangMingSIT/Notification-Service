@@ -1,15 +1,18 @@
+import { ApiAuthGuard } from '@app/auth';
 import { HttpExceptionFilter, NOTIFICATIONAPI } from '@app/common';
 import {
     Body,
     Controller,
+    Headers,
     Post,
-    UploadedFile,
+    UploadedFiles,
     UseFilters,
+    UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { emailInputDto } from './dtos/email-api.dto';
+import { ApiConsumes, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { EmailInputDto } from './dtos/email-api.dto';
 import { EmailApiService } from './email-api.service';
 
 @Controller({ version: '1', path: NOTIFICATIONAPI })
@@ -19,15 +22,22 @@ export class EmailApiController {
 
     @Post('/email')
     @ApiConsumes('multipart/form-data')
+    @ApiSecurity('ApiKeyAuth')
+    @UseGuards(ApiAuthGuard)
     @UseInterceptors(FileInterceptor('file'))
     @UseFilters(HttpExceptionFilter)
     async publishEmail(
-        @Body() body: emailInputDto,
-        @UploadedFile() file: Express.Multer.File,
-    ): Promise<{ success: string; message: string }> {
-        const response = await this.emailApiService.publishEmail(body, file);
+        @Headers() headers: Record<string, string>,
+        @Body() body: EmailInputDto,
+        @UploadedFiles() file: Array<Express.Multer.File>,
+    ): Promise<{ status; message }> {
+        const response = await this.emailApiService.publishEmail(
+            body,
+            file,
+            headers.apikey,
+        );
         return {
-            success: response.response,
+            status: response.status,
             message: response.message,
         };
     }

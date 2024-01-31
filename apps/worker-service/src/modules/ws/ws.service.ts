@@ -1,4 +1,5 @@
 import {
+    ApiKeys,
     NotificationLog,
     QUEUE_EMAIL,
     QUEUE_SMS,
@@ -7,7 +8,12 @@ import {
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { InjectRepository } from '@nestjs/typeorm';
+import * as fs from 'fs';
+import Handlebars from 'handlebars';
 import { Model } from 'mongoose';
+import { join } from 'path';
+import { Repository } from 'typeorm';
 
 interface MailReponse {
     response: string;
@@ -17,6 +23,10 @@ interface SMSReponse {
     cancelled: boolean;
 } // Mock Response
 
+const template = fs.readFileSync(
+    join(__dirname + '/template/template.hbs'),
+    'utf8',
+);
 @Injectable()
 export class WsService implements OnApplicationBootstrap {
     constructor(
@@ -24,6 +34,8 @@ export class WsService implements OnApplicationBootstrap {
         private readonly mailerService: MailerService,
         @InjectModel(NotificationLog.name)
         private notificationLogModel: Model<NotificationLog>,
+        @InjectRepository(ApiKeys, 'postgres')
+        private apiKeyRepo: Repository<ApiKeys>,
     ) {}
 
     onApplicationBootstrap() {
@@ -40,7 +52,7 @@ export class WsService implements OnApplicationBootstrap {
     private async updateStatus(uuid: string, status: string) {
         return await this.notificationLogModel.updateOne(
             {
-                uuid: uuid,
+                _id: uuid,
             },
             {
                 $set: { status: status },
@@ -48,18 +60,28 @@ export class WsService implements OnApplicationBootstrap {
         );
     }
 
+    private async updateNumberOfApiCalls(apiKey: string) {
+        const response = await this.apiKeyRepo.increment(
+            { apiKey: apiKey },
+            'numberOfApiCalls',
+            1,
+        );
+    }
+
     private async handleEmailMessage(emailPayload: any) {
+        const messageWithTemplate = Handlebars.compile(template);
+        const message = messageWithTemplate({ content: emailPayload.body });
         const payload = {
             from: emailPayload.from,
             to: emailPayload.to,
             subject: emailPayload.subject,
-            template: './template',
-            context: {
-                content: emailPayload.body,
-            },
+            html: message,
         };
         if (emailPayload.cc) {
             payload['cc'] = emailPayload.cc;
+        }
+        if (emailPayload.bcc) {
+            payload['bcc'] = emailPayload.bcc;
         }
         if (emailPayload.file !== undefined) {
             payload['attachments'] = [
@@ -81,14 +103,14 @@ export class WsService implements OnApplicationBootstrap {
                 }, 2000);
             });
         } // Mock Mail Reponse
-
         try {
             // const response = await this.mailerService.sendMail(payload);
             const response = await mail();
             if (response.response.includes('250')) {
-                this.updateStatus(emailPayload.uuid, 'SUCCESS');
+                this.updateStatus(emailPayload._id, 'SUCCESS');
+                this.updateNumberOfApiCalls(emailPayload.apikey);
             } else {
-                this.updateStatus(emailPayload.uuid, 'FAIL');
+                this.updateStatus(emailPayload._id, 'FAIL');
             }
         } catch (error) {
             this.updateStatus(emailPayload.uuid, 'FAIL');
@@ -104,7 +126,7 @@ export class WsService implements OnApplicationBootstrap {
                     resolve({ cancelled: false });
                 }, 2000);
             });
-        } // Mock Mail Reponse
+        } // Mock SMS Reponse
 
         try {
             // const response = await fetch(

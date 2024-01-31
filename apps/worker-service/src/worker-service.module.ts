@@ -1,7 +1,7 @@
+import { MongoDBModule, PostgresDBModule } from '@app/common';
 import { Module } from '@nestjs/common';
-import { WsModule } from './modules/ws/ws.module';
-import { MongoDBModule } from '@app/common';
 import { ConfigModule } from '@nestjs/config';
+import { WsModule } from './modules/ws/ws.module';
 
 @Module({
     imports: [
@@ -10,6 +10,7 @@ import { ConfigModule } from '@nestjs/config';
         }),
         WsModule,
         MongoDBModule,
+        PostgresDBModule,
     ],
 })
 export class WorkerServiceModule {}

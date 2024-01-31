@@ -5,9 +5,18 @@ import {
     JwtAuthGuard,
     PolicyGuard,
 } from '@app/auth';
-import { NOTIFICATIONSYSTEM } from '@app/common';
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiTags } from '@nestjs/swagger';
+import { NOTIFICATIONSYSTEM, PaginationDto } from '@app/common';
+import {
+    Body,
+    Controller,
+    Get,
+    HttpStatus,
+    Post,
+    Query,
+    Request,
+    UseGuards,
+} from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { ApiKeyService } from './api-key.service';
 import { GenerateTokenDto } from './dtos/generate-token.dto';
 
@@ -18,21 +27,32 @@ export class ApiKeyController {
     constructor(private apiKeyService: ApiKeyService) {}
 
     @Post('generateApiKey')
-    @ApiBody({ type: GenerateTokenDto })
     @UseGuards(JwtAuthGuard, PolicyGuard)
     @CheckPolicies((ability: AppAbility) =>
         ability.can(Actions.Create, 'ApiKey'),
     )
-    async generateToken(@Body() body: GenerateTokenDto) {
-        const response = await this.apiKeyService.generateApiKey(body.name);
-        return response;
+    async generateToken(
+        @Body() body: GenerateTokenDto,
+        @Request() req,
+    ): Promise<{ status: number; token: any }> {
+        const token = await this.apiKeyService.generateApiKey(
+            body.name,
+            req.user.uuid,
+        );
+        return { status: HttpStatus.OK, token: token };
     }
 
     @Get('apiKeyRecords')
     @UseGuards(JwtAuthGuard, PolicyGuard)
     @CheckPolicies((ability: AppAbility) => ability.can(Actions.Read, 'ApiKey'))
-    async listApiKeys() {
-        const response = await this.apiKeyService.listApiKeys();
-        return response;
+    async listApiKeys(
+        @Request() req,
+        @Query() pagination: PaginationDto,
+    ): Promise<{ status: number; response: object }> {
+        const response = await this.apiKeyService.listApiKeys(
+            req.user.uuid,
+            pagination,
+        );
+        return { status: HttpStatus.OK, response: response };
     }
 }

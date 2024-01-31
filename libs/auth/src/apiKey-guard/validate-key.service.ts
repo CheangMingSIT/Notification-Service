@@ -4,7 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
 @Injectable()
-export class validateKeyService {
+export class ValidateKeyService {
     constructor(
         @InjectRepository(ApiKeys, 'postgres')
         private apiKeyRepo: Repository<ApiKeys>,

@@ -1,4 +1,4 @@
-import { UserValidationModule, validateKeyModule } from '@app/auth';
+import { UserValidationModule, ValidateKeyModule } from '@app/auth';
 import { MongoDBModule } from '@app/common';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
@@ -12,7 +12,7 @@ import { NotificationRecordModule } from './notification-record/notification-rec
         MongoDBModule,
         NotificationRecordModule,
         UserValidationModule,
-        validateKeyModule,
+        ValidateKeyModule,
     ],
 })
 export class CnsNotificationRecordModule {}

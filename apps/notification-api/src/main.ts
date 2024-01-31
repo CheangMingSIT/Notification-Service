@@ -21,6 +21,11 @@ async function bootstrap() {
         .setTitle('Notification Service')
         .setDescription('Notification Service')
         .setVersion('1.0')
+        .addSecurity('ApiKeyAuth', {
+            type: 'apiKey',
+            in: 'header',
+            name: 'apiKey',
+        })
         .build();
 
     const options: SwaggerDocumentOptions = {

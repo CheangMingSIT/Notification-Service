@@ -42,6 +42,7 @@ export class RabbitmqService implements OnModuleInit {
         this.channel = this.connection.createChannel({
             json: true,
             setup: async (channel) => await this.setupRabbitMQ(channel),
+            confirm: true,
         });
 
         this.channel.waitForConnect();
@@ -94,11 +95,12 @@ export class RabbitmqService implements OnModuleInit {
     public async publish(routingkey: string, message: any) {
         this.channel.waitForConnect();
         try {
-            return this.channel.publish(
+            const result = await this.channel.publish(
                 EX_NOTIFICATION,
                 routingkey,
                 Buffer.from(JSON.stringify(message)),
             );
+            return result;
         } catch (error) {
             console.error(error);
             return false;

@@ -1,25 +1,26 @@
-import { Injectable } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { v4 as uuidv4 } from 'uuid';
 
 import {
-    RabbitmqService,
     NotificationLog,
     RK_NOTIFICATION_EMAIL,
+    RabbitmqService,
 } from '@app/common';
-import { emailInputDto } from './dtos/email-api.dto';
+import { EmailInputDto } from './dtos/email-api.dto';
 
 interface EmailLog {
-    readonly uuid: string;
+    readonly _id: string;
     readonly channel: string;
     readonly status: string;
-    message: string;
-    sender: string;
-    recipient: string[];
-    scheduleDate: Date;
+    readonly subject: string;
+    readonly message: string;
+    readonly sender: string;
+    readonly recipient: string[];
+    readonly scheduleDate: Date;
+    readonly apikey: string;
 }
-
 @Injectable()
 export class EmailApiService {
     constructor(
@@ -28,38 +29,57 @@ export class EmailApiService {
         private notificationLogModel: Model<NotificationLog>,
     ) {}
 
-    async publishEmail(body: emailInputDto, file: any) {
-        let uuid = uuidv4();
-        const payload = { uuid, ...body, file };
+    async publishEmail(body: EmailInputDto, file: any, apikey: string) {
+        const _id = uuidv4();
+        let mergeRecipients = [];
+        let response: Boolean;
+        const payload = { _id, ...body, file, apikey };
+
         try {
-            const response = await this.rabbitMQService.publish(
+            response = await this.rabbitMQService.publish(
                 RK_NOTIFICATION_EMAIL,
                 payload,
             );
-            const log: EmailLog = {
-                uuid: uuid,
-                channel: 'Email',
-                status: response === true ? 'QUEUING' : 'FAIL TO ENTER QUEUE',
-                message: body.body,
-                sender: body.from,
-                recipient: body.cc ? [...body.to, ...body.cc] : [...body.to],
-                scheduleDate: new Date(),
-            };
-
-            const notificationLog = new this.notificationLogModel(log);
-            await notificationLog.save();
-            if (response === false) {
+            if (!response) {
                 return {
-                    response: 'fail',
+                    status: HttpStatus.INTERNAL_SERVER_ERROR,
                     message: 'Email failed to add to the queue',
                 };
             }
-            return {
-                response: 'true',
-                message: 'Email added to the queue successfully',
-            };
         } catch (error) {
-            throw new Error(error);
+            return {
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'Email failed to add to the queue',
+            };
         }
+
+        if (body.cc) {
+            mergeRecipients = [...body.to, ...body.cc];
+        } else if (body.bcc) {
+            mergeRecipients = [...body.to, ...body.bcc];
+        } else if (body.cc && body.bcc) {
+            mergeRecipients = [...body.to, ...body.cc, ...body.bcc];
+        } else {
+            mergeRecipients = [...body.to];
+        }
+
+        const log: EmailLog = {
+            _id,
+            channel: 'Email',
+            status: response === true ? 'QUEUING' : 'FAIL TO ENTER QUEUE',
+            subject: body.subject,
+            message: body.body,
+            sender: body.from,
+            recipient: mergeRecipients,
+            scheduleDate: new Date(),
+            apikey,
+        };
+
+        const logModel = new this.notificationLogModel(log);
+        await logModel.save();
+        return {
+            status: HttpStatus.CREATED,
+            message: 'Email added to the queue successfully',
+        };
     }
 }

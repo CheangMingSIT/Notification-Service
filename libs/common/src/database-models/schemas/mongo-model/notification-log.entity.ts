@@ -3,14 +3,17 @@ import { Document } from 'mongoose';
 
 @Schema()
 export class NotificationLog extends Document {
-    @Prop({ type: String })
-    uuid: string;
+    @Prop()
+    _id: string;
 
     @Prop()
     channel: string;
 
     @Prop()
     status: string;
+
+    @Prop()
+    subject: string;
 
     @Prop({ type: Buffer })
     message: Buffer;
@@ -23,6 +26,9 @@ export class NotificationLog extends Document {
 
     @Prop()
     scheduleDate: Date;
+
+    @Prop()
+    apikey: string;
 }
 
 export const NotificationLogSchema =

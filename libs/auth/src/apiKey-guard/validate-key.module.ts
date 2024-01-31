@@ -4,7 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ApiKeyStrategy } from './guard/api-auth.strategy';
-import { validateKeyService } from './validate-key.service';
+import { ValidateKeyService } from './validate-key.service';
 
 @Module({
     imports: [
@@ -15,6 +15,6 @@ import { validateKeyService } from './validate-key.service';
         PostgresDBModule,
         TypeOrmModule.forFeature([ApiKeys], 'postgres'),
     ],
-    providers: [ApiKeyStrategy, validateKeyService],
+    providers: [ApiKeyStrategy, ValidateKeyService],
 })
-export class validateKeyModule {}
+export class ValidateKeyModule {}

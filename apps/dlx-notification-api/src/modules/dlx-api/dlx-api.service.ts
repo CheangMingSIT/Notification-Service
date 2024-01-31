@@ -30,7 +30,7 @@ export class DlxApiService implements OnApplicationBootstrap {
     private async updateStatus(uuid: string, status: string) {
         return await this.notificationLogModel.updateOne(
             {
-                uuid: uuid,
+                _id: uuid,
             },
             {
                 $set: { status: status },
@@ -39,14 +39,14 @@ export class DlxApiService implements OnApplicationBootstrap {
     }
     private async handleDLQEmailMessage(emailPayload: any) {
         try {
-            await this.updateStatus(emailPayload.uuid, 'QUEUE FAIL');
+            await this.updateStatus(emailPayload._id, 'QUEUE FAIL');
         } catch (error) {
             console.error(error);
         }
     }
     private async handleDLQSMSMessage(smsPayload: any) {
         try {
-            await this.updateStatus(smsPayload.uuid, 'QUEUE FAIL');
+            await this.updateStatus(smsPayload._id, 'QUEUE FAIL');
         } catch (error) {
             console.error(error);
         }
