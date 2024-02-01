@@ -6,7 +6,7 @@ import {
     PrimaryGeneratedColumn,
     Relation,
 } from 'typeorm';
-import { RolePermission } from './role-permission.entity';
+import type { RolePermission } from './role-permission.entity';
 
 @Entity('Permission', { schema: 'User', database: 'User' })
 export class Permission {
@@ -19,9 +19,12 @@ export class Permission {
     @Column('varchar')
     subject: string;
 
+    @Column('jsonb', { nullable: true })
+    conditions: string;
+
     @OneToMany(
-        () => RolePermission,
-        (rolePermission) => rolePermission.permission,
+        'RolePermission',
+        (rolePermission: RolePermission) => rolePermission.permission,
     )
     @JoinColumn([
         { name: 'permissionId', referencedColumnName: 'permissionId' },

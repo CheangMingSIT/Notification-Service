@@ -27,14 +27,14 @@ export class EmailApiController {
     @UseInterceptors(FileInterceptor('file'))
     @UseFilters(HttpExceptionFilter)
     async publishEmail(
-        @Headers() headers: Record<string, string>,
+        @Headers() headers,
         @Body() body: EmailInputDto,
         @UploadedFiles() file: Array<Express.Multer.File>,
     ): Promise<{ status; message }> {
         const response = await this.emailApiService.publishEmail(
             body,
             file,
-            headers.apikey,
+            headers.secretkey,
         );
         return {
             status: response.status,

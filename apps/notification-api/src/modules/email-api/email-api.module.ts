@@ -1,13 +1,19 @@
-import { EmailApiService } from './email-api.service';
-import { EmailApiController } from './email-api.controller';
 import {
+    ApiKey,
     NotificationLog,
     NotificationLogSchema,
+    Permission,
     RabbitMqModule,
+    Role,
+    RolePermission,
+    User,
 } from '@app/common';
+import { EmailApiController } from './email-api.controller';
+import { EmailApiService } from './email-api.service';
 
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
     imports: [
@@ -15,6 +21,10 @@ import { MongooseModule } from '@nestjs/mongoose';
         MongooseModule.forFeature([
             { name: NotificationLog.name, schema: NotificationLogSchema },
         ]),
+        TypeOrmModule.forFeature(
+            [ApiKey, User, Role, RolePermission, Permission],
+            'postgres',
+        ),
     ],
     controllers: [EmailApiController],
     providers: [EmailApiService],

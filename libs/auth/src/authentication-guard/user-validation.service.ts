@@ -1,5 +1,5 @@
 import { User } from '@app/common';
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Repository } from 'typeorm';
@@ -18,16 +18,23 @@ export class UserValidationService {
             const { password, ...payload } = user;
             return payload;
         } else {
-            throw new UnauthorizedException('Invalid credentials');
+            throw new InternalServerErrorException('Something went wrong');
         }
     }
 
     async validateRefreshToken(
-        uuid: string,
+        userId: string,
         refreshToken: string,
     ): Promise<boolean> {
-        const user = await this.userRepo.findOneBy({ uuid });
-        const isMatch = await bcrypt.compare(refreshToken, user.refreshToken);
-        return isMatch;
+        try {
+            const user = await this.userRepo.findOneBy({ userId });
+            const isMatch = await bcrypt.compare(
+                refreshToken,
+                user.refreshToken,
+            );
+            return isMatch;
+        } catch (e) {
+            throw new InternalServerErrorException('Something went wrong');
+        }
     }
 }

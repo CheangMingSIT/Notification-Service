@@ -37,7 +37,7 @@ export class ApiKeyController {
     ): Promise<{ status: number; token: any }> {
         const token = await this.apiKeyService.generateApiKey(
             body.name,
-            req.user.uuid,
+            req.user.userId,
         );
         return { status: HttpStatus.OK, token: token };
     }
@@ -50,7 +50,7 @@ export class ApiKeyController {
         @Query() pagination: PaginationDto,
     ): Promise<{ status: number; response: object }> {
         const response = await this.apiKeyService.listApiKeys(
-            req.user.uuid,
+            req.user.userId,
             pagination,
         );
         return { status: HttpStatus.OK, response: response };

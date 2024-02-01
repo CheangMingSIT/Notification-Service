@@ -19,7 +19,7 @@ interface EmailLog {
     readonly sender: string;
     readonly recipient: string[];
     readonly scheduleDate: Date;
-    readonly apikey: string;
+    readonly secretKey: string;
 }
 @Injectable()
 export class EmailApiService {
@@ -29,11 +29,11 @@ export class EmailApiService {
         private notificationLogModel: Model<NotificationLog>,
     ) {}
 
-    async publishEmail(body: EmailInputDto, file: any, apikey: string) {
+    async publishEmail(body: EmailInputDto, file: any, secretKey: string) {
         const _id = uuidv4();
         let mergeRecipients = [];
         let response: Boolean;
-        const payload = { _id, ...body, file, apikey };
+        const payload = { _id, ...body, file, secretKey };
 
         try {
             response = await this.rabbitMQService.publish(
@@ -52,7 +52,6 @@ export class EmailApiService {
                 message: 'Email failed to add to the queue',
             };
         }
-
         if (body.cc) {
             mergeRecipients = [...body.to, ...body.cc];
         } else if (body.bcc) {
@@ -72,7 +71,7 @@ export class EmailApiService {
             sender: body.from,
             recipient: mergeRecipients,
             scheduleDate: new Date(),
-            apikey,
+            secretKey: secretKey,
         };
 
         const logModel = new this.notificationLogModel(log);

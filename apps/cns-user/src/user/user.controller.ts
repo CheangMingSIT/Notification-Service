@@ -39,23 +39,23 @@ export class UserController {
         return this.userService.listUsers(query);
     }
 
-    @Patch('updateUser/:uuid')
+    @Patch('updateUser/:userId')
     @ApiBearerAuth()
     @ApiBody({ type: UserRoleIdDto })
-    @ApiParam({ name: 'uuid', type: String })
+    @ApiParam({ name: 'userId', type: String })
     @UseGuards(JwtAuthGuard, PolicyGuard)
     @CheckPolicies((ability: AppAbility) => ability.can(Actions.Update, 'User'))
     @UseFilters(HttpExceptionFilter)
-    updateUser(@Param('uuid') uuid: string, @Body() roleId: UserRoleIdDto) {
-        return this.userService.updateUser(uuid, roleId);
+    updateUser(@Param('userId') userId: string, @Body() roleId: UserRoleIdDto) {
+        return this.userService.updateUser(userId, roleId);
     }
 
-    @Delete('deleteUser/:uuid')
+    @Delete('deleteUser/:userId')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard, PolicyGuard)
     @CheckPolicies((ability: AppAbility) => ability.can(Actions.Delete, 'User'))
     @UseFilters(HttpExceptionFilter)
-    deleteUser(@Param('uuid') uuid: string) {
-        return this.userService.deleteUser(uuid);
+    deleteUser(@Param('userId') userId: string) {
+        return this.userService.deleteUser(userId);
     }
 }

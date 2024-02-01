@@ -27,10 +27,10 @@ export class DlxApiService implements OnApplicationBootstrap {
         );
     }
 
-    private async updateStatus(uuid: string, status: string) {
+    private async updateStatus(userId: string, status: string) {
         return await this.notificationLogModel.updateOne(
             {
-                _id: uuid,
+                _id: userId,
             },
             {
                 $set: { status: status },

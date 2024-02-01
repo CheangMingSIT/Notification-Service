@@ -27,7 +27,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             .trim();
 
         const validUser = await this.authService.validateRefreshToken(
-            payload.uuid,
+            payload.userId,
             refreshToken,
         );
 
@@ -35,7 +35,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             throw new UnauthorizedException('Invalid User');
         }
         return {
-            uuid: payload.uuid,
+            uuid: payload.userId,
             email: payload.email,
             roleId: payload.roleId,
             refreshToken: payload.refreshToken,

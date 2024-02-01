@@ -28,7 +28,10 @@ export class NotificationLog extends Document {
     scheduleDate: Date;
 
     @Prop()
-    apikey: string;
+    secretKey: string;
+
+    @Prop()
+    userId: string;
 }
 
 export const NotificationLogSchema =

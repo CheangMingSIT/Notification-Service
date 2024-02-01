@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
 
-import { DlxApiModule } from './modules/dlx-api/dlx-api.module';
-import { MongoDBModule } from '@app/common';
+import { MongoDBModule, PostgresDBModule } from '@app/common';
 import { ConfigModule } from '@nestjs/config';
+import { DlxApiModule } from './modules/dlx-api/dlx-api.module';
 
 @Module({
     imports: [
@@ -10,6 +10,7 @@ import { ConfigModule } from '@nestjs/config';
             isGlobal: true,
         }),
         MongoDBModule,
+        PostgresDBModule,
         DlxApiModule,
     ],
 })

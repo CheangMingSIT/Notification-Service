@@ -30,14 +30,14 @@ export class UserAuthService {
 
     async signIn(user: any): Promise<Object> {
         const payload = {
-            uuid: user.uuid,
+            userId: user.userId,
             email: user.email,
             roleId: user.roleId,
             refreshToken: user.refreshToken,
         };
         const access_token = await this.jwtService.signAsync(payload);
         const hash_token = await this.hashPassword(access_token);
-        await this.userRepo.update(user.uuid, {
+        await this.userRepo.update(user.userId, {
             refreshToken: hash_token,
         });
         return { token: access_token };
@@ -70,9 +70,9 @@ export class UserAuthService {
         }
     }
 
-    async logout(uuid: string) {
+    async logout(userId: string) {
         try {
-            this.userRepo.update(uuid, { refreshToken: null });
+            this.userRepo.update(userId, { refreshToken: null });
             return {
                 status: HttpStatus.OK,
                 message: 'Successfully logged out user',
@@ -83,13 +83,13 @@ export class UserAuthService {
     }
 
     async refreshToken(user: {
-        uuid: string;
+        userId: string;
         email: string;
         roleId: string;
         refreshToken: string;
     }): Promise<string> {
-        const { uuid, email, roleId, refreshToken } = user;
-        const payload = await this.userRepo.findOneBy({ uuid });
+        const { userId, email, roleId, refreshToken } = user;
+        const payload = await this.userRepo.findOneBy({ userId });
         if (!payload || !payload.refreshToken) {
             throw new ForbiddenException('Access Denied');
         }
@@ -101,12 +101,12 @@ export class UserAuthService {
             throw new ForbiddenException('Access Denied');
         }
         const token = await this.jwtService.signAsync({
-            uuid,
+            userId,
             email,
             roleId,
         });
         const hash_token = await this.hashPassword(token);
-        await this.userRepo.update(uuid, {
+        await this.userRepo.update(userId, {
             refreshToken: hash_token,
         });
         return token;
@@ -118,7 +118,7 @@ export class UserAuthService {
             throw new HttpException('User does not exist', HttpStatus.OK);
         }
         const payload = {
-            uuid: user.uuid,
+            uuid: user.userId,
             email: user.email,
             roleId: user.roleId,
         };
@@ -153,7 +153,9 @@ export class UserAuthService {
     }
 
     async resetPassword(user: any, password: string) {
-        const existingUser = await this.userRepo.findOneBy({ uuid: user.uuid });
+        const existingUser = await this.userRepo.findOneBy({
+            userId: user.userId,
+        });
         if (!existingUser) {
             throw new HttpException('User does not exist', HttpStatus.OK);
         }
@@ -162,13 +164,13 @@ export class UserAuthService {
             password: hash,
         });
         const newToken = await this.jwtService.signAsync({
-            uuid: user.uuid,
+            uuid: user.userId,
             email: user.email,
             roleId: user.roleId,
         });
         try {
             const hash_token = await this.hashPassword(newToken);
-            await this.userRepo.update(user.uuid, {
+            await this.userRepo.update(user.userId, {
                 refreshToken: hash_token,
             });
             return {

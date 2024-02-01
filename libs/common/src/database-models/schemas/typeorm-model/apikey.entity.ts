@@ -8,23 +8,21 @@ import {
 } from 'typeorm';
 import type { User } from './user.entity';
 
-@Entity('ApiKeys', { schema: 'User', database: 'User' })
-export class ApiKeys {
-    @PrimaryGeneratedColumn('uuid', { name: 'apiKeyId' })
-    apiKeyId: string;
+@Entity('ApiKey', { schema: 'User', database: 'User' })
+export class ApiKey {
+    @PrimaryGeneratedColumn('uuid', { name: 'id' })
+    id: string;
 
     @Column('varchar')
     name: string;
 
     @Column('varchar')
-    apiKey: string;
+    secretKey: string;
 
-    @Column('uuid', { name: 'userId' })
+    @Column('uuid', { name: 'userId', nullable: true })
     userId: string;
 
-    @ManyToOne('User', (user: User) => user.apiKeys, {
-        createForeignKeyConstraints: false,
-    })
-    @JoinColumn([{ name: 'userId', referencedColumnName: 'uuid' }])
+    @ManyToOne('User', (user: User) => user.apiKeys, { nullable: true })
+    @JoinColumn([{ name: 'userId', referencedColumnName: 'userId' }])
     user: Relation<User>;
 }

@@ -25,7 +25,7 @@ async function bootstrap() {
         .addSecurity('ApiKeyAuth', {
             type: 'apiKey',
             in: 'header',
-            name: 'apiKey',
+            name: 'secretKey',
         })
         .build();
     const options: SwaggerDocumentOptions = {

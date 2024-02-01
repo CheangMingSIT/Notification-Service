@@ -1,8 +1,12 @@
 import {
-    ApiKeys,
+    ApiKey,
     NotificationLog,
     NotificationLogSchema,
+    Permission,
     RabbitMqModule,
+    Role,
+    RolePermission,
+    User,
 } from '@app/common';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { PugAdapter } from '@nestjs-modules/mailer/dist/adapters/pug.adapter';
@@ -22,7 +26,10 @@ import { WsService } from './ws.service';
         MongooseModule.forFeature([
             { name: NotificationLog.name, schema: NotificationLogSchema },
         ]),
-        TypeOrmModule.forFeature([ApiKeys], 'postgres'),
+        TypeOrmModule.forFeature(
+            [ApiKey, User, Role, RolePermission, Permission],
+            'postgres',
+        ),
         MailerModule.forRoot({
             transport: {
                 host: 'smtp.office365.com',

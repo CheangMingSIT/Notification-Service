@@ -1,5 +1,4 @@
 import {
-    ApiKeys,
     NotificationLog,
     QUEUE_EMAIL,
     QUEUE_SMS,
@@ -8,12 +7,10 @@ import {
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { InjectRepository } from '@nestjs/typeorm';
 import * as fs from 'fs';
 import Handlebars from 'handlebars';
 import { Model } from 'mongoose';
 import { join } from 'path';
-import { Repository } from 'typeorm';
 
 interface MailReponse {
     response: string;
@@ -34,8 +31,6 @@ export class WsService implements OnApplicationBootstrap {
         private readonly mailerService: MailerService,
         @InjectModel(NotificationLog.name)
         private notificationLogModel: Model<NotificationLog>,
-        @InjectRepository(ApiKeys, 'postgres')
-        private apiKeyRepo: Repository<ApiKeys>,
     ) {}
 
     onApplicationBootstrap() {
@@ -49,22 +44,14 @@ export class WsService implements OnApplicationBootstrap {
         );
     }
 
-    private async updateStatus(uuid: string, status: string) {
+    private async updateStatus(userId: string, status: string) {
         return await this.notificationLogModel.updateOne(
             {
-                _id: uuid,
+                _id: userId,
             },
             {
                 $set: { status: status },
             },
-        );
-    }
-
-    private async updateNumberOfApiCalls(apiKey: string) {
-        const response = await this.apiKeyRepo.increment(
-            { apiKey: apiKey },
-            'numberOfApiCalls',
-            1,
         );
     }
 
@@ -108,7 +95,6 @@ export class WsService implements OnApplicationBootstrap {
             const response = await mail();
             if (response.response.includes('250')) {
                 this.updateStatus(emailPayload._id, 'SUCCESS');
-                this.updateNumberOfApiCalls(emailPayload.apikey);
             } else {
                 this.updateStatus(emailPayload._id, 'FAIL');
             }
@@ -148,12 +134,12 @@ export class WsService implements OnApplicationBootstrap {
             // const data = await response.json();
             const data = await mail();
             if (data.cancelled === false) {
-                await this.updateStatus(smsPayload.uuid, 'SUCCESS');
+                await this.updateStatus(smsPayload._id, 'SUCCESS');
             } else {
-                await this.updateStatus(smsPayload.uuid, 'FAIL');
+                await this.updateStatus(smsPayload._id, 'FAIL');
             }
         } catch (error) {
-            await this.updateStatus(smsPayload.uuid, 'FAIL');
+            await this.updateStatus(smsPayload._id, 'FAIL');
             console.error('Error processing SMS message:', error);
         }
     }

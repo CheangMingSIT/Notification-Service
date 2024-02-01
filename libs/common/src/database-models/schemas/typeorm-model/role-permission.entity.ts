@@ -5,8 +5,8 @@ import {
     PrimaryColumn,
     Relation,
 } from 'typeorm';
-import { Permission } from './permission.entity';
-import { Role } from './role.entity';
+import type { Permission } from './permission.entity';
+import type { Role } from './role.entity';
 
 @Entity('RolePermission', { schema: 'User', database: 'User' })
 export class RolePermission {
@@ -16,11 +16,14 @@ export class RolePermission {
     @PrimaryColumn('int', { name: 'permissionId' })
     permissionId: number;
 
-    @ManyToOne(() => Role, (role) => role.rolePermissions)
+    @ManyToOne('Role', (role: Role) => role.rolePermissions)
     @JoinColumn([{ name: 'roleId', referencedColumnName: 'id' }])
     role: Role;
 
-    @ManyToOne(() => Permission, (permission) => permission.rolePermissions)
+    @ManyToOne(
+        'Permission',
+        (permission: Permission) => permission.rolePermissions,
+    )
     @JoinColumn([
         { name: 'permissionId', referencedColumnName: 'permissionId' },
     ])

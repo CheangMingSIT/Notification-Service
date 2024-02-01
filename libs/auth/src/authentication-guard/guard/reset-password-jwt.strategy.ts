@@ -18,7 +18,7 @@ export class ResetPasswordStrategy extends PassportStrategy(
 
     async validate(payload: any) {
         return {
-            uuid: payload.uuid,
+            uuid: payload.userId,
             email: payload.email,
             roleId: payload.roleId,
         };

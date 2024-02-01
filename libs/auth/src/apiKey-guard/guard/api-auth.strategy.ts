@@ -6,7 +6,7 @@ import { ValidateKeyService } from '../validate-key.service';
 @Injectable()
 export class ApiKeyStrategy extends PassportStrategy(HeaderAPIKeyStrategy) {
     constructor(private keyValidation: ValidateKeyService) {
-        super({ header: 'apikey', prefix: '' }, true, (apikey, done) => {
+        super({ header: 'secretKey', prefix: '' }, true, (apikey, done) => {
             const checkKey = keyValidation.validateApiKey(apikey);
             if (!checkKey) {
                 return done(null, false);

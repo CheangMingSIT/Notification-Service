@@ -41,13 +41,13 @@ export class UserService {
         }
     }
 
-    async updateUser(uuid: string, userRole: UserRoleIdDto) {
-        const existingUser = await this.userRepo.findOneBy({ uuid });
+    async updateUser(userId: string, userRole: UserRoleIdDto) {
+        const existingUser = await this.userRepo.findOneBy({ userId });
         if (!existingUser) {
             throw new BadRequestException('User does not exist');
         }
         try {
-            await this.userRepo.update(existingUser.uuid, {
+            await this.userRepo.update(existingUser.userId, {
                 roleId: userRole.roleId,
             });
             return {
@@ -59,15 +59,15 @@ export class UserService {
         }
     }
 
-    async deleteUser(uuid: string) {
+    async deleteUser(userId: string) {
         const existingUser = await this.userRepo.findOneBy({
-            uuid,
+            userId,
         });
         if (!existingUser) {
             throw new BadRequestException('User does not exist');
         }
         try {
-            await this.userRepo.delete(uuid);
+            await this.userRepo.delete(userId);
             return {
                 status: HttpStatus.OK,
                 message: 'Successfully deleted user',

@@ -14,12 +14,12 @@ import { UserModule } from './user/user.module';
             isGlobal: true,
         }),
         PostgresDBModule,
+        MongoDBModule,
         UserModule,
         UserAuthModule,
         PermissionModule,
         RolepermissionModule,
         UserValidationModule,
-        MongoDBModule,
         ApiAuthModule,
     ],
 })

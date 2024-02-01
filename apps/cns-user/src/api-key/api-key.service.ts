@@ -1,4 +1,4 @@
-import { ApiKeys, PaginationDto } from '@app/common';
+import { ApiKey, PaginationDto } from '@app/common';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomBytes } from 'crypto';
@@ -6,21 +6,21 @@ import { Repository } from 'typeorm';
 
 interface ApiKeyRecord {
     readonly name: string;
-    readonly apiKey: string;
+    readonly secretKey: string;
     readonly userId: string;
 }
 @Injectable()
 export class ApiKeyService {
     constructor(
-        @InjectRepository(ApiKeys, 'postgres')
-        private apiKeyRepo: Repository<ApiKeys>,
+        @InjectRepository(ApiKey, 'postgres')
+        private apiKeyRepo: Repository<ApiKey>,
     ) {}
 
     async generateApiKey(name: string, user_uuid: string): Promise<Object> {
         const apiKey = randomBytes(32).toString('hex');
         const record: ApiKeyRecord = {
             name: name,
-            apiKey: apiKey,
+            secretKey: apiKey,
             userId: user_uuid,
         };
         try {
@@ -28,6 +28,7 @@ export class ApiKeyService {
             await this.apiKeyRepo.save(newApiKey);
             return apiKey;
         } catch (error) {
+            console.error(error);
             throw new InternalServerErrorException("Couldn't generate api key");
         }
     }
@@ -46,7 +47,7 @@ export class ApiKeyService {
             return response.map((record) => {
                 return {
                     name: record.name,
-                    apiKey: record.apiKey,
+                    apiKey: record.secretKey,
                 };
             });
         } catch (error) {

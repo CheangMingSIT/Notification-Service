@@ -108,7 +108,7 @@ export class RabbitmqService implements OnModuleInit {
     }
 
     public async subscribe(queue: string, onMessage: (msg) => void) {
-        this.channel.waitForConnect();
+        const test = this.channel.waitForConnect();
         await this.channel.addSetup((channel: any) => {
             channel.consume(queue, (msg: any) => {
                 if (msg) {

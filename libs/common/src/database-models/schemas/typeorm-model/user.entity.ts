@@ -7,13 +7,13 @@ import {
     PrimaryGeneratedColumn,
     Relation,
 } from 'typeorm';
-import { Role } from './role.entity';
-import type { ApiKeys } from './apikey.entity';
+import type { ApiKey } from './apikey.entity';
+import type { Role } from './role.entity';
 
 @Entity('User', { schema: 'User', database: 'User' })
 export class User {
-    @PrimaryGeneratedColumn('uuid', { name: 'uuid' })
-    uuid: string;
+    @PrimaryGeneratedColumn('uuid', { name: 'userId' })
+    userId: string;
 
     @Column('varchar')
     name: string;
@@ -30,10 +30,10 @@ export class User {
     @Column('varchar', { nullable: true })
     refreshToken: string;
 
-    @OneToMany('ApiKeys', (apiKeys: ApiKeys) => apiKeys.user)
-    apiKeys: ApiKeys[];
+    @OneToMany('ApiKey', (apiKey: ApiKey) => apiKey.user)
+    apiKeys: ApiKey[];
 
-    @ManyToOne(() => Role, (role) => role.users)
+    @ManyToOne('Role', (role: Role) => role.users)
     @JoinColumn([{ name: 'roleId', referencedColumnName: 'id' }])
     role: Relation<Role>;
 }
