@@ -15,6 +15,7 @@ import {
     Controller,
     Delete,
     Get,
+    HttpStatus,
     Param,
     Patch,
     Query,
@@ -35,8 +36,12 @@ export class UserController {
     @UseGuards(JwtAuthGuard, PolicyGuard)
     @CheckPolicies((ability: AppAbility) => ability.can(Actions.Read, 'User'))
     @UseFilters(HttpExceptionFilter)
-    listUsers(@Query() query: PaginationDto) {
-        return this.userService.listUsers(query);
+    async listUsers(@Query() query: PaginationDto) {
+        const response = await this.userService.listUsers(query);
+        return {
+            status: HttpStatus.OK,
+            data: response.data.users,
+        };
     }
 
     @Patch('updateUser/:userId')
@@ -46,8 +51,15 @@ export class UserController {
     @UseGuards(JwtAuthGuard, PolicyGuard)
     @CheckPolicies((ability: AppAbility) => ability.can(Actions.Update, 'User'))
     @UseFilters(HttpExceptionFilter)
-    updateUser(@Param('userId') userId: string, @Body() roleId: UserRoleIdDto) {
-        return this.userService.updateUser(userId, roleId);
+    async updateUser(
+        @Param('userId') userId: string,
+        @Body() roleId: UserRoleIdDto,
+    ) {
+        const response = await this.userService.updateUser(userId, roleId);
+        return {
+            status: HttpStatus.OK,
+            message: response,
+        };
     }
 
     @Delete('deleteUser/:userId')
@@ -55,7 +67,11 @@ export class UserController {
     @UseGuards(JwtAuthGuard, PolicyGuard)
     @CheckPolicies((ability: AppAbility) => ability.can(Actions.Delete, 'User'))
     @UseFilters(HttpExceptionFilter)
-    deleteUser(@Param('userId') userId: string) {
-        return this.userService.deleteUser(userId);
+    async deleteUser(@Param('userId') userId: string) {
+        const response = await this.userService.deleteUser(userId);
+        return {
+            status: HttpStatus.OK,
+            message: response,
+        };
     }
 }

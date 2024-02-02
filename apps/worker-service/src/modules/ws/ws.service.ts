@@ -99,7 +99,7 @@ export class WsService implements OnApplicationBootstrap {
                 this.updateStatus(emailPayload._id, 'FAIL');
             }
         } catch (error) {
-            this.updateStatus(emailPayload.uuid, 'FAIL');
+            this.updateStatus(emailPayload._id, 'FAIL');
             console.error('Error processing email message:', error);
         }
     }

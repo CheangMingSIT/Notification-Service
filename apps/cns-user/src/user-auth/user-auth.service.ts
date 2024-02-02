@@ -3,9 +3,8 @@ import { MailerService } from '@nestjs-modules/mailer';
 import {
     BadRequestException,
     ForbiddenException,
-    HttpException,
-    HttpStatus,
     Injectable,
+    InternalServerErrorException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
@@ -35,50 +34,50 @@ export class UserAuthService {
             roleId: user.roleId,
             refreshToken: user.refreshToken,
         };
-        const access_token = await this.jwtService.signAsync(payload);
-        const hash_token = await this.hashPassword(access_token);
-        await this.userRepo.update(user.userId, {
-            refreshToken: hash_token,
-        });
-        return { token: access_token };
+        try {
+            const access_token = await this.jwtService.signAsync(payload);
+            const hash_token = await this.hashPassword(access_token);
+            await this.userRepo.update(user.userId, {
+                refreshToken: hash_token,
+            });
+            return access_token;
+        } catch (error) {
+            console.error('Error occurred while signing in:', error);
+            throw new InternalServerErrorException('Internal Server Error');
+        }
     }
 
     async signUp(body: { name: string; email: string; password: string }) {
         const { name, email, password } = body;
-        const existingUser = await this.userRepo.findOneBy({ email });
-        if (existingUser) {
-            throw new HttpException('User already exists', HttpStatus.OK);
-        }
-        const hash = await this.hashPassword(password);
         try {
+            const existingUser = await this.userRepo.findOneBy({ email });
+            if (existingUser) {
+                throw new BadRequestException('User already exists');
+            }
+            const hash = await this.hashPassword(password);
             const newUser = this.userRepo.create({
                 name,
                 email,
                 password: hash,
             });
             await this.userRepo.save(newUser);
-            return {
-                status: HttpStatus.OK,
-                message: 'User created successfully',
-            };
-        } catch (e) {
-            throw new HttpException(
-                "Couldn't create user",
-                HttpStatus.BAD_REQUEST,
-                { cause: e.message, description: 'User creation failed' },
-            );
+            return 'User created successfully';
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            } else {
+                console.error('Error occurred while creating user:', error);
+                throw new InternalServerErrorException(error.message);
+            }
         }
     }
 
     async logout(userId: string) {
         try {
             this.userRepo.update(userId, { refreshToken: null });
-            return {
-                status: HttpStatus.OK,
-                message: 'Successfully logged out user',
-            };
-        } catch (e) {
-            throw new BadRequestException(e.message);
+            return 'Logged out successfully';
+        } catch (error) {
+            throw new BadRequestException(error.message);
         }
     }
 
@@ -89,96 +88,115 @@ export class UserAuthService {
         refreshToken: string;
     }): Promise<string> {
         const { userId, email, roleId, refreshToken } = user;
-        const payload = await this.userRepo.findOneBy({ userId });
-        if (!payload || !payload.refreshToken) {
-            throw new ForbiddenException('Access Denied');
+        try {
+            const payload = await this.userRepo.findOneBy({ userId });
+            if (!payload || !payload.refreshToken) {
+                throw new ForbiddenException('Access Denied');
+            }
+            const isMatch = await bcrypt.compare(
+                refreshToken,
+                payload.refreshToken,
+            );
+            if (!isMatch) {
+                throw new ForbiddenException('Access Denied');
+            }
+            const token = await this.jwtService.signAsync({
+                userId,
+                email,
+                roleId,
+            });
+            const hashedToken = await this.hashPassword(token);
+            await this.userRepo.update(userId, {
+                refreshToken: hashedToken,
+            });
+            return token;
+        } catch (error) {
+            if (error instanceof ForbiddenException) {
+                throw error;
+            } else {
+                console.error('Error occurred while refreshing token:', error);
+                throw new InternalServerErrorException('Internal Server Error');
+            }
         }
-        const isMatch = await bcrypt.compare(
-            refreshToken,
-            payload.refreshToken,
-        );
-        if (!isMatch) {
-            throw new ForbiddenException('Access Denied');
-        }
-        const token = await this.jwtService.signAsync({
-            userId,
-            email,
-            roleId,
-        });
-        const hash_token = await this.hashPassword(token);
-        await this.userRepo.update(userId, {
-            refreshToken: hash_token,
-        });
-        return token;
     }
 
     async requestPasswordResetLink(email: string) {
-        const user = await this.userRepo.findOneBy({ email });
-        if (!user) {
-            throw new HttpException('User does not exist', HttpStatus.OK);
-        }
-        const payload = {
-            uuid: user.userId,
-            email: user.email,
-            roleId: user.roleId,
-        };
-        const token = await this.jwtService.signAsync(payload, {
-            secret: this.configService.get('JWT_SECRET'),
-            algorithm: 'HS256',
-            expiresIn: '1m',
-        });
-        const reset_password_link =
-            this.configService.get('RESET_PASSWORD_URL');
-
-        const message = {
-            to: user.email,
-            subject: 'Reset Password',
-            text: `Reset Password Link: ${reset_password_link}?token=${token}`,
-        };
         try {
+            const user = await this.userRepo.findOneBy({ email });
+            if (!user) {
+                throw new BadRequestException('User does not exist');
+            }
+            const payload = {
+                userId: user.userId,
+                email: user.email,
+                roleId: user.roleId,
+            };
+            const token = await this.jwtService.signAsync(payload, {
+                secret: this.configService.get('JWT_SECRET'),
+                algorithm: 'HS256',
+                expiresIn: '1m',
+            });
+            const reset_password_link =
+                this.configService.get('RESET_PASSWORD_URL');
+
+            const message = {
+                to: user.email,
+                subject: 'Reset Password',
+                text: `Reset Password Link: ${reset_password_link}?token=${token}`,
+            };
             const response = await this.mailerService.sendMail(message);
             if (response.response.includes('250')) {
                 await this.userRepo.update(user, {
                     refreshToken: token,
                 });
             }
-            return {
-                token: token,
-                status: HttpStatus.OK,
-                message: 'Reset Password Link sent successfully',
-            };
+            return token;
         } catch (error) {
-            throw new BadRequestException(error.message);
+            if (error instanceof BadRequestException) {
+                throw error;
+            } else {
+                console.error(
+                    'Error occurred while sending reset password link:',
+                    error,
+                );
+                throw new BadRequestException(error.message);
+            }
         }
     }
 
     async resetPassword(user: any, password: string) {
-        const existingUser = await this.userRepo.findOneBy({
-            userId: user.userId,
-        });
-        if (!existingUser) {
-            throw new HttpException('User does not exist', HttpStatus.OK);
-        }
-        const hash = await this.hashPassword(password);
-        await this.userRepo.update(existingUser, {
-            password: hash,
-        });
-        const newToken = await this.jwtService.signAsync({
-            uuid: user.userId,
-            email: user.email,
-            roleId: user.roleId,
-        });
         try {
+            const existingUser = await this.userRepo.findOneBy({
+                userId: user.userId,
+            });
+            if (!existingUser) {
+                throw new BadRequestException('User does not exist');
+            }
+            const hash = await this.hashPassword(password);
+            await this.userRepo.update(existingUser, {
+                password: hash,
+            });
+            const newToken = await this.jwtService.signAsync({
+                userId: user.userId,
+                email: user.email,
+                roleId: user.roleId,
+            });
+
             const hash_token = await this.hashPassword(newToken);
             await this.userRepo.update(user.userId, {
                 refreshToken: hash_token,
             });
-            return {
-                status: HttpStatus.OK,
-                message: 'Password reset successfully',
-            };
+            return 'Password reset successfully';
         } catch (error) {
-            throw new BadRequestException(error.message);
+            if (error instanceof BadRequestException) {
+                throw error;
+            } else {
+                console.error(
+                    'Error occurred while resetting password:',
+                    error,
+                );
+                throw new BadRequestException(error.message);
+            }
         }
     }
 }

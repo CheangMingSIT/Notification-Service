@@ -1,4 +1,4 @@
-import { CheckPolicies, JwtAuthGuard } from '@app/auth';
+import { Actions, CheckPolicies, JwtAuthGuard } from '@app/auth';
 import {
     HttpExceptionFilter,
     NOTIFICATIONSYSTEM,
@@ -9,6 +9,7 @@ import {
     Controller,
     Delete,
     Get,
+    HttpStatus,
     Param,
     Patch,
     Post,
@@ -17,7 +18,6 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
-import { PermissionIdDto } from './dtos/permissionId.dto';
 import { PermissionDto } from './dtos/permssion.dto';
 import { PermissionService } from './permission.service';
 
@@ -31,39 +31,58 @@ export class PermissionController {
     @UseGuards(JwtAuthGuard)
     @UseFilters(HttpExceptionFilter)
     @CheckPolicies((ability: any) => ability.can('read', 'Permission'))
-    listPermissions(@Query() query: PaginationDto): Promise<any> {
-        return this.permissionService.listPermissions(query);
+    async listPermissions(@Query() query: PaginationDto) {
+        const response = await this.permissionService.listPermissions(query);
+        return {
+            status: HttpStatus.OK,
+            data: response.data.permissions,
+        };
     }
 
     @Post('createPermission')
     @UseGuards(JwtAuthGuard)
     @UseFilters(HttpExceptionFilter)
     @CheckPolicies((ability: any) => ability.can('create', 'Permission'))
-    createPermission(@Body() body: PermissionDto) {
-        return this.permissionService.createPermission(body);
+    async createPermission(@Body() body: PermissionDto) {
+        const response = await this.permissionService.createPermission(body);
+        return {
+            status: HttpStatus.CREATED,
+            message: response,
+        };
     }
 
     @Patch('updatePermission/:permissionId')
-    @ApiParam({ name: 'permissionId', type: PermissionIdDto })
+    @ApiParam({ name: 'permissionId', type: 'number' })
     @UseGuards(JwtAuthGuard)
     @UseFilters(HttpExceptionFilter)
     @CheckPolicies((ability: any) => ability.can('update', 'Permission'))
-    updatePermission(
-        @Param('permissionId') permission: PermissionIdDto,
+    async updatePermission(
+        @Param('permissionId') permission: number,
         @Body() body: PermissionDto,
     ) {
-        return this.permissionService.updatePermission(
-            permission.permissionId,
+        const permissionId = Number(permission);
+        const response = await this.permissionService.updatePermission(
+            permissionId,
             body,
         );
+        return {
+            status: HttpStatus.OK,
+            message: response,
+        };
     }
 
     @Delete('deletePermission/:permissionId')
-    @ApiParam({ name: 'permissionId', type: PermissionIdDto })
+    @ApiParam({ name: 'permissionId', required: true, type: 'number' })
     @UseGuards(JwtAuthGuard)
     @UseFilters(HttpExceptionFilter)
-    @CheckPolicies((ability: any) => ability.can('delete', 'Permission'))
-    deletePermission(@Param('permissionId') permissionId: number) {
-        return this.permissionService.deletePermission(permissionId);
+    @CheckPolicies((ability: any) => ability.can(Actions.Delete, 'Permission'))
+    async deletePermission(@Param('permissionId') permission: number) {
+        const permissionId = Number(permission);
+        const response =
+            await this.permissionService.deletePermission(permissionId);
+        return {
+            status: HttpStatus.OK,
+            message: response,
+        };
     }
 }

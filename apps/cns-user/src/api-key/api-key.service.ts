@@ -1,5 +1,9 @@
 import { ApiKey, PaginationDto } from '@app/common';
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import {
+    BadRequestException,
+    Injectable,
+    InternalServerErrorException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomBytes } from 'crypto';
 import { Repository } from 'typeorm';
@@ -16,42 +20,74 @@ export class ApiKeyService {
         private apiKeyRepo: Repository<ApiKey>,
     ) {}
 
-    async generateApiKey(name: string, user_uuid: string): Promise<Object> {
-        const apiKey = randomBytes(32).toString('hex');
+    async generateApiKey(name: string, userId: string): Promise<Object> {
+        const secretKey = randomBytes(32).toString('hex');
         const record: ApiKeyRecord = {
             name: name,
-            secretKey: apiKey,
-            userId: user_uuid,
+            secretKey,
+            userId,
         };
         try {
-            const newApiKey = this.apiKeyRepo.create(record);
-            await this.apiKeyRepo.save(newApiKey);
-            return apiKey;
+            const newSecretKey = this.apiKeyRepo.create(record);
+            await this.apiKeyRepo.save(newSecretKey);
+            return secretKey;
         } catch (error) {
-            console.error(error);
-            throw new InternalServerErrorException("Couldn't generate api key");
+            console.error('Error occurred while generating API key:', error);
+            throw new InternalServerErrorException(
+                "Couldn't generate api key. Something went wrong!",
+            );
         }
     }
 
     async listApiKeys(
-        user_uuid: string,
+        userId: string,
         pagination: PaginationDto,
     ): Promise<Object> {
         const { page, limit } = pagination;
         try {
             const response = await this.apiKeyRepo.find({
-                where: { userId: user_uuid },
+                where: { userId },
                 skip: (page - 1) * limit,
                 take: limit,
             });
             return response.map((record) => {
                 return {
+                    id: record.id,
                     name: record.name,
-                    apiKey: record.secretKey,
+                    secretKey: record.secretKey,
                 };
             });
         } catch (error) {
-            throw new InternalServerErrorException("Couldn't fetch api keys");
+            console.error('Error occurred while fetching API keys:', error);
+            throw new BadRequestException(
+                "Couldn't fetch api keys. Something went wrong!",
+            );
+        }
+    }
+
+    async deleteApiKey(userId: string, secretKeyId: string): Promise<string> {
+        try {
+            const existingApiKey = await this.apiKeyRepo.findOne({
+                where: { userId, id: secretKeyId },
+            });
+            if (existingApiKey) {
+                await this.apiKeyRepo.delete({
+                    userId,
+                    id: secretKeyId,
+                });
+                return 'API Key deleted successfully';
+            } else {
+                throw new BadRequestException('Invalid secret key');
+            }
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            } else {
+                console.error('Error occurred while deleting API key:', error);
+                throw new InternalServerErrorException(
+                    'Couldn’t delete api key. Something went wrong!',
+                );
+            }
         }
     }
 }

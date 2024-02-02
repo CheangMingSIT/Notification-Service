@@ -44,9 +44,9 @@ export class CaslAbilityFactory {
                 );
             });
 
-            // if admin, can manage all
-            // if system operator, can manage the notification record
-            // if user, can read the notification record
+            // if super admin, can manage all
+            // if system operator, can read the notification record that is tied to the apikeys that they generated
+            // if user, can read the notification record tied to their personal apikey
         } catch (e) {
             console.error(e);
             throw new InternalServerErrorException('Casl Ability Error');

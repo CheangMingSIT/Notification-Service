@@ -13,11 +13,13 @@ export class UserValidationService {
     }
 
     async validateUser(email: string, pass: string): Promise<any> {
-        const user = await this.findUser(email);
-        if (user && (await bcrypt.compare(pass, user.password))) {
-            const { password, ...payload } = user;
-            return payload;
-        } else {
+        try {
+            const user = await this.findUser(email);
+            if (user && (await bcrypt.compare(pass, user.password))) {
+                const { password, ...payload } = user;
+                return payload;
+            }
+        } catch (error) {
             throw new InternalServerErrorException('Something went wrong');
         }
     }
@@ -33,7 +35,7 @@ export class UserValidationService {
                 user.refreshToken,
             );
             return isMatch;
-        } catch (e) {
+        } catch (error) {
             throw new InternalServerErrorException('Something went wrong');
         }
     }

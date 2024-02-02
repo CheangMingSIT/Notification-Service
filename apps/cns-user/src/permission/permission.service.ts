@@ -29,64 +29,60 @@ export class PermissionService {
                 };
             });
             return {
-                status: HttpStatus.OK,
-                message: 'Successfully fetched permissions',
                 data: {
                     permissions: payload,
                     page: page,
                     limit: limit,
                 },
             };
-        } catch (e) {
-            throw new HttpException(e.message, HttpStatus.OK);
+        } catch (error) {
+            throw new BadRequestException(error.message);
         }
     }
 
     async createPermission(body: {
         action: string;
         subject: string;
-    }): Promise<any> {
-        const { action, subject } = body;
-        const existingPermission = await this.permissionRepo.findOneBy({
-            action,
-            subject,
-        });
-        if (existingPermission) {
-            throw new HttpException('Permission already exists', HttpStatus.OK);
+        conditions: object;
+    }) {
+        const { action, subject, conditions } = body;
+        try {
+            const newPermission = this.permissionRepo.create({
+                action,
+                subject,
+                conditions,
+            });
+            await this.permissionRepo.save(newPermission);
+            return 'Permission created successfully';
+        } catch (error) {
+            throw new BadRequestException(error.message);
         }
-        const newPermission = this.permissionRepo.create({
-            action,
-            subject,
-        });
-        const savePermission = await this.permissionRepo.save(newPermission);
-        return savePermission;
     }
 
     async updatePermission(
-        permissionId: string,
-        body: { action: string; subject: string },
-    ): Promise<any> {
+        permissionId: number,
+        body: { action: string; subject: string; conditions: object },
+    ) {
+        const { action, subject, conditions } = body;
         try {
             const existingPermission = await this.permissionRepo.findOneBy({
-                permissionId: parseInt(permissionId),
+                permissionId,
             });
             if (!existingPermission) {
-                throw new HttpException(
-                    'Permission does not exist',
-                    HttpStatus.OK,
-                );
+                throw new BadRequestException('Permission does not exist');
             }
-            const updatePermission = await this.permissionRepo.update(
-                existingPermission.permissionId,
-                body,
-            );
-            return updatePermission;
-        } catch (e) {
-            throw new BadRequestException(e.message);
+            await this.permissionRepo.update(existingPermission.permissionId, {
+                action,
+                subject,
+                conditions,
+            });
+            return 'Permission updated successfully';
+        } catch (error) {
+            throw new BadRequestException(error.message);
         }
     }
 
-    async deletePermission(permissionId: number): Promise<any> {
+    async deletePermission(permissionId: number) {
         const existingPermission = await this.permissionRepo.findOneBy({
             permissionId,
         });
@@ -96,9 +92,13 @@ export class PermissionService {
                 HttpStatus.OK,
             );
         }
-        const deletePermission = await this.permissionRepo.delete(
-            existingPermission.permissionId,
-        );
-        return deletePermission;
+        try {
+            await this.permissionRepo.delete(existingPermission.permissionId);
+            return 'Permission deleted successfully';
+        } catch (error) {
+            throw new BadRequestException(
+                'There is an existing role tied to this permission. Please remove the associated permission from the role before deleting the permission.',
+            );
+        }
     }
 }

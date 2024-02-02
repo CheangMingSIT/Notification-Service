@@ -1,7 +1,6 @@
-import { RolePermission } from '@app/common';
+import { Permission, Role, RolePermission } from '@app/common';
 import {
-    HttpException,
-    HttpStatus,
+    BadRequestException,
     Injectable,
     InternalServerErrorException,
 } from '@nestjs/common';
@@ -13,107 +12,125 @@ export class RolepermissionService {
     constructor(
         @InjectRepository(RolePermission, 'postgres')
         private rolePermissionRepo: Repository<RolePermission>,
+        @InjectRepository(Role, 'postgres')
+        private roleRepo: Repository<Role>,
+        @InjectRepository(Permission, 'postgres')
+        private permissionRepo: Repository<Permission>,
     ) {}
 
-    async associatePermissionsToRole(
-        roleIds: number[],
-        permissionIds: number[],
-    ) {
+    async createRoleWithPermission(role: string, permissionId: number[]) {
         try {
-            const promises = [];
-            for (const permissionId of permissionIds) {
-                for (const roleId of roleIds) {
-                    promises.push(
-                        this.createRolePermission(roleId, permissionId),
-                    );
-                }
+            let existingRole = await this.roleRepo.findOne({ where: { role } });
+            if (!existingRole) {
+                const newRole = this.roleRepo.create({ role });
+                existingRole = await this.roleRepo.save(newRole);
+            } else {
+                return 'Existing role with permission already created';
             }
-            await Promise.all(promises);
-            return {
-                status: HttpStatus.OK,
-                message: 'Successfully associated permissions to role',
-            };
-        } catch (error) {
-            console.error('Failed to associate permissions to role:', error);
-            throw new InternalServerErrorException(
-                'Failed to associate permissions to role',
-            );
-        }
-    }
 
-    async deleteAssociatePermissionsToRole(
-        roleIds: number[],
-        permissionIds: number[],
-    ) {
-        try {
-            const promises = [];
-            for (const permissionId of permissionIds) {
-                for (const roleId of roleIds) {
-                    promises.push(
-                        this.deleteRolePermission(roleId, permissionId),
-                    );
-                }
-            }
-            await Promise.all(promises);
-            return {
-                status: HttpStatus.OK,
-                message: 'Successfully deleted role permissions',
-            };
-        } catch (error) {
-            console.error('Failed to delete role permissions:', error);
-            throw new InternalServerErrorException(
-                'Failed to delete role permissions',
-            );
-        }
-    }
-    async createRolePermission(roleId: number, permissionId: number) {
-        try {
-            const existingRolePermission =
-                await this.rolePermissionRepo.findOneBy({
-                    roleId,
-                    permissionId,
+            permissionId.forEach(async (id) => {
+                const rolePermission = this.rolePermissionRepo.create({
+                    permissionId: id,
+                    roleId: existingRole.id,
                 });
-
-            if (existingRolePermission) {
-                throw new HttpException(
-                    'Role Permission already exists',
-                    HttpStatus.OK,
+                await this.rolePermissionRepo.save(rolePermission);
+            });
+            return 'Role created successfully';
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            } else {
+                throw new InternalServerErrorException(
+                    'Error creating role with permission',
                 );
             }
-            const newRolePermission = this.rolePermissionRepo.create({
-                roleId,
-                permissionId,
-            });
-            await this.rolePermissionRepo.save(newRolePermission);
-            return {
-                status: HttpStatus.OK,
-                message: 'Successfully created role permission',
-                data: {
-                    rolePermission: newRolePermission,
+        }
+    }
+
+    async updateRoleWithPermission(roleId: number, permissionIds: number[]) {
+        try {
+            let newRolePermissions = [];
+            const existingRole = await this.roleRepo.findOne({
+                where: { id: roleId },
+                relations: {
+                    rolePermissions: true,
                 },
-            };
+            });
+            if (!existingRole) {
+                throw new BadRequestException('Role does not exist');
+            }
+            existingRole.rolePermissions.forEach(async (rolePermission) => {
+                await this.rolePermissionRepo.delete(rolePermission);
+            });
+            permissionIds.forEach(async (id) => {
+                const rolePermission = this.rolePermissionRepo.create({
+                    permissionId: id,
+                    roleId: existingRole.id,
+                });
+                newRolePermissions.push(rolePermission);
+            });
+            await this.rolePermissionRepo.save(newRolePermissions);
+            return "Role's permissions updated successfully";
         } catch (error) {
-            console.error('Failed to create role permission:', error);
             throw new InternalServerErrorException(
-                'Failed to create role permission',
+                'Error updating role with permission',
             );
         }
     }
-    async deleteRolePermission(roleId: number, permissionId: number) {
-        const existingRolePermission = await this.rolePermissionRepo.findOneBy({
-            roleId,
-            permissionId,
-        });
-        if (!existingRolePermission) {
-            throw new HttpException(
-                'Role Permission does not exist',
-                HttpStatus.OK,
+
+    async deleteRole(roleId: number) {
+        try {
+            const existingRole = await this.roleRepo.findOne({
+                where: { id: roleId },
+                relations: {
+                    rolePermissions: true,
+                },
+            });
+            if (!existingRole) {
+                throw new BadRequestException('Role does not exist');
+            }
+            existingRole.rolePermissions.forEach(async (rolePermission) => {
+                await this.rolePermissionRepo.delete(rolePermission);
+            });
+            await this.roleRepo.delete(existingRole.id);
+            return 'Role deleted successfully';
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            } else {
+                throw new InternalServerErrorException('Error deleting role');
+            }
+        }
+    }
+
+    async listRolePermission(roleId: number) {
+        try {
+            const rolePermissionsList = await this.roleRepo.find({
+                where: { id: roleId },
+                relations: {
+                    rolePermissions: {
+                        permission: true,
+                    },
+                },
+            });
+            const payload = rolePermissionsList.map((role) => {
+                return {
+                    role: role.role,
+                    permissions: role.rolePermissions.map((rolePermission) => {
+                        return {
+                            id: rolePermission.permission.permissionId,
+                            action: rolePermission.permission.action,
+                            subject: rolePermission.permission.subject,
+                            conditions: rolePermission.permission.conditions,
+                        };
+                    }),
+                };
+            });
+            return payload;
+        } catch (error) {
+            throw new InternalServerErrorException(
+                'Error fetching role permissions',
             );
         }
-        await this.rolePermissionRepo.delete({ roleId, permissionId });
-        return {
-            status: HttpStatus.OK,
-            message: 'Successfully deleted role permission',
-        };
     }
 }

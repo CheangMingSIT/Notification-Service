@@ -9,6 +9,8 @@ import {
     Body,
     Controller,
     Get,
+    HttpStatus,
+    Patch,
     Post,
     Request,
     UseFilters,
@@ -29,40 +31,68 @@ export class UserAuthController {
     @Post('signIn')
     @ApiBody({ type: loginDto })
     @UseGuards(UserAuthGuard)
-    signIn(@Request() req: any) {
-        return this.authService.signIn(req.user);
+    async signIn(@Request() req: any) {
+        const token = await this.authService.signIn(req.user);
+        return {
+            status: HttpStatus.OK,
+            token: token,
+        };
     }
 
     @Post('signUp')
     @UseFilters(HttpExceptionFilter)
     async signUp(@Body() body: UserDto): Promise<object> {
-        const result = await this.authService.signUp(body);
-        return result;
+        const response = await this.authService.signUp(body);
+        return {
+            status: HttpStatus.ACCEPTED,
+            message: response,
+        };
     }
 
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
     @Get('logout')
-    logout(@Request() req: any) {
-        return this.authService.logout(req.user['userId']);
+    async logout(@Request() req: any) {
+        const response = await this.authService.logout(req.user['userId']);
+        return {
+            status: HttpStatus.OK,
+            message: response,
+        };
     }
 
     @UseGuards(RefreshTokenGuard)
     @ApiBearerAuth()
     @Get('refreshToken')
-    refreshToken(@Request() req: any) {
-        return this.authService.refreshToken(req.user);
+    async refreshToken(@Request() req: any) {
+        const token = await this.authService.refreshToken(req.user);
+        return {
+            status: HttpStatus.OK,
+            token: token,
+        };
     }
 
     @Post('forgotPassword')
-    forgotPassword(@Body() body: ForgotPasswordDto) {
-        return this.authService.requestPasswordResetLink(body.email);
+    async forgotPassword(@Body() body: ForgotPasswordDto) {
+        const response = await this.authService.requestPasswordResetLink(
+            body.email,
+        );
+        return {
+            status: HttpStatus.OK,
+            message: response,
+        };
     }
 
-    @Post('resetPassword')
+    @Patch('resetPassword')
     @ApiQuery({ name: 'token', type: String })
     @UseGuards(ResetPasswordGuard)
-    resetPassword(@Request() req: any, @Body() body: ResetPassword) {
-        return this.authService.resetPassword(req.user, body.password);
+    async resetPassword(@Request() req: any, @Body() body: ResetPassword) {
+        const response = await this.authService.resetPassword(
+            req.user,
+            body.password,
+        );
+        return {
+            status: HttpStatus.ACCEPTED,
+            message: response,
+        };
     }
 }

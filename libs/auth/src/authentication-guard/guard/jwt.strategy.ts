@@ -35,7 +35,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             throw new UnauthorizedException('Invalid User');
         }
         return {
-            uuid: payload.userId,
+            userId: payload.userId,
             email: payload.email,
             roleId: payload.roleId,
             refreshToken: payload.refreshToken,

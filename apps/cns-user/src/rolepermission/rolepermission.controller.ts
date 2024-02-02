@@ -4,12 +4,18 @@ import {
     Body,
     Controller,
     Delete,
+    Get,
+    HttpStatus,
+    Patch,
     Post,
+    Query,
     UseFilters,
     UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { PermissionRoleDto } from './dtos/rolepermission.dto';
+import { RolePermissionDto } from './dtos/rolepermission.dto';
+import { SelectRoleIdDto } from './dtos/selectRoleId.dto';
+import { updateRolePermissionDto } from './dtos/updateRolePermission.dto';
 import { RolepermissionService } from './rolepermission.service';
 
 @Controller({ version: '1', path: NOTIFICATIONSYSTEM })
@@ -24,21 +30,55 @@ export class RolepermissionController {
     @UseGuards(JwtAuthGuard)
     @UseFilters(HttpExceptionFilter)
     @CheckPolicies((ability: any) => ability.can('create', 'RolePermission'))
-    createRolePermission(@Body() body: PermissionRoleDto) {
-        return this.rolePermissionService.associatePermissionsToRole(
+    createRolePermission(@Body() body: RolePermissionDto) {
+        const response = this.rolePermissionService.createRoleWithPermission(
+            body.role,
+            body.permissionId,
+        );
+        return {
+            status: HttpStatus.OK,
+            message: response,
+        };
+    }
+
+    @Patch('updateRolePermission')
+    @UseGuards(JwtAuthGuard)
+    @UseFilters(HttpExceptionFilter)
+    @CheckPolicies((ability: any) => ability.can('update', 'RolePermission'))
+    updateRolePermission(@Body() body: updateRolePermissionDto) {
+        const response = this.rolePermissionService.updateRoleWithPermission(
             body.roleId,
             body.permissionId,
         );
+        return {
+            status: HttpStatus.OK,
+            response: response,
+        };
     }
 
-    @Delete('deleteRolePermission')
+    @Delete('deleteRole')
     @UseGuards(JwtAuthGuard)
     @UseFilters(HttpExceptionFilter)
     @CheckPolicies((ability: any) => ability.can('delete', 'RolePermission'))
-    deleteRolePermission(@Body() body: PermissionRoleDto) {
-        return this.rolePermissionService.deleteAssociatePermissionsToRole(
-            body.roleId,
-            body.permissionId,
+    deleteRole(@Body() body: SelectRoleIdDto) {
+        const response = this.rolePermissionService.deleteRole(body.roleId);
+        return {
+            status: HttpStatus.OK,
+            response: response,
+        };
+    }
+
+    @Get('ListRolePermission')
+    @UseGuards(JwtAuthGuard)
+    @UseFilters(HttpExceptionFilter)
+    @CheckPolicies((ability: any) => ability.can('read', 'RolePermission'))
+    async listRolePermission(@Query() query: SelectRoleIdDto): Promise<Object> {
+        const response = await this.rolePermissionService.listRolePermission(
+            query.roleId,
         );
+        return {
+            status: HttpStatus.OK,
+            response: JSON.parse(JSON.stringify(response)),
+        };
     }
 }

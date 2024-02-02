@@ -1,9 +1,8 @@
 import { PaginationDto, User } from '@app/common';
 import {
     BadRequestException,
-    HttpException,
-    HttpStatus,
     Injectable,
+    InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -23,57 +22,60 @@ export class UserService {
             });
             const payload = users.map((user) => {
                 return {
+                    userId: user.userId,
                     email: user.email,
                     roleId: user.roleId,
                 };
             });
             return {
-                status: HttpStatus.OK,
-                message: 'Successfully fetched users',
                 data: {
                     users: payload,
                     page: page,
                     limit: limit,
                 },
             };
-        } catch (e) {
-            throw new HttpException(e.message, e.status);
+        } catch (error) {
+            throw new InternalServerErrorException(error.message);
         }
     }
 
     async updateUser(userId: string, userRole: UserRoleIdDto) {
-        const existingUser = await this.userRepo.findOneBy({ userId });
-        if (!existingUser) {
-            throw new BadRequestException('User does not exist');
-        }
         try {
+            const existingUser = await this.userRepo.findOneBy({ userId });
+            if (!existingUser) {
+                throw new BadRequestException('User does not exist');
+            }
             await this.userRepo.update(existingUser.userId, {
                 roleId: userRole.roleId,
             });
-            return {
-                status: HttpStatus.OK,
-                message: 'Successfully updated user',
-            };
-        } catch (e) {
-            throw new BadRequestException(e.message);
+            return 'Successfully updated user';
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            } else {
+                console.error('Error occurred while updating user:', error);
+                throw new InternalServerErrorException(error.message);
+            }
         }
     }
 
     async deleteUser(userId: string) {
-        const existingUser = await this.userRepo.findOneBy({
-            userId,
-        });
-        if (!existingUser) {
-            throw new BadRequestException('User does not exist');
-        }
         try {
+            const existingUser = await this.userRepo.findOneBy({
+                userId,
+            });
+            if (!existingUser) {
+                throw new BadRequestException('User does not exist');
+            }
             await this.userRepo.delete(userId);
-            return {
-                status: HttpStatus.OK,
-                message: 'Successfully deleted user',
-            };
-        } catch (e) {
-            throw new BadRequestException(e.message);
+            return 'Successfully deleted user';
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            } else {
+                console.error('Error occurred while deleting user:', error);
+                throw new InternalServerErrorException(error.message);
+            }
         }
     }
 }

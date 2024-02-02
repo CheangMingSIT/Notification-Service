@@ -1,13 +1,16 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
+    ApiKey,
     NotificationLog,
     RK_NOTIFICATION_SMS,
     RabbitmqService,
 } from '@app/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { SmsInputDto } from './dtos/sms.dto';
 
 interface smsLog {
@@ -18,7 +21,8 @@ interface smsLog {
     readonly sender: string;
     readonly recipient: string[];
     readonly scheduleDate: Date;
-    readonly apiKey: string;
+    readonly secretKey: string;
+    readonly userId: string;
 }
 
 @Injectable()
@@ -27,8 +31,10 @@ export class SmsApiService {
         private readonly rabbitMQService: RabbitmqService,
         @InjectModel(NotificationLog.name)
         private notificationLogModel: Model<NotificationLog>,
+        @InjectRepository(ApiKey, 'postgres')
+        private apiKeyRepo: Repository<ApiKey>,
     ) {}
-    async publishSMS(body: SmsInputDto, apiKey: string) {
+    async publishSMS(body: SmsInputDto, secretKey: string) {
         let _id = uuidv4();
         const payload = { _id, ...body };
         try {
@@ -36,6 +42,9 @@ export class SmsApiService {
                 RK_NOTIFICATION_SMS,
                 payload,
             );
+
+            const { userId } = await this.apiKeyRepo.findOneBy({ secretKey });
+
             const log: smsLog = {
                 _id,
                 channel: 'SMS',
@@ -44,7 +53,8 @@ export class SmsApiService {
                 sender: body.sender,
                 recipient: body.recipient,
                 scheduleDate: new Date(),
-                apiKey,
+                secretKey,
+                userId,
             };
             const notificationLog = new this.notificationLogModel(log);
             await notificationLog.save();
@@ -60,7 +70,10 @@ export class SmsApiService {
                 message: 'SMS added to the queue successfully',
             };
         } catch (error) {
-            throw new HttpException(error.message, error.status);
+            return {
+                status: HttpStatus.INTERNAL_SERVER_ERROR,
+                message: 'Something went wrong',
+            };
         }
     }
 }

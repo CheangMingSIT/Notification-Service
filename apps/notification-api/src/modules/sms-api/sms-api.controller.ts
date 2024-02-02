@@ -25,11 +25,11 @@ export class SmsApiController {
     @UseFilters(HttpExceptionFilter)
     async sendSMS(
         @Body() body: SmsInputDto,
-        @Headers() headers: Record<string, string>,
+        @Headers() headers,
     ): Promise<{ success; message }> {
         const response = await this.smsApiService.publishSMS(
             body,
-            headers.apikey,
+            headers.secretkey,
         );
         return {
             success: response.status,
