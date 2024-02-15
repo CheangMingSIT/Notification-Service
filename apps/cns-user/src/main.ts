@@ -11,6 +11,7 @@ declare const module: any;
 
 async function bootstrap() {
     const app = await NestFactory.create(CnsUserModule);
+    app.enableCors();
     app.useGlobalPipes(
         new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
     );

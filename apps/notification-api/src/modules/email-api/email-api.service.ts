@@ -65,7 +65,7 @@ export class EmailApiService {
             const log: EmailLog = {
                 _id,
                 channel: 'Email',
-                status: response === true ? 'QUEUING' : 'FAIL TO ENTER QUEUE',
+                status: response === true ? 'QUEUING' : 'QUEUE FAILED',
                 subject: body.subject,
                 message: body.body,
                 sender: body.from,

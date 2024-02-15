@@ -1,28 +1,38 @@
 import {
     AbilityBuilder,
-    createMongoAbility,
     ExtractSubjectType,
+    InferSubjects,
     MongoAbility,
+    MongoQuery,
+    createMongoAbility,
 } from '@casl/ability';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+
+import {
+    ApiKey,
+    NotificationLog,
+    Permission,
+    Role,
+    RolePermission,
+    User,
+} from '@app/common';
 import { CaslAbilityService } from './casl-ability.service';
+import { Actions } from './enum/actions.enum';
 
-const Actions = ['manage', 'create', 'read', 'update', 'delete'] as const;
-const Subject = [
-    'User',
-    'ApiKey',
-    'NotificationRecord',
-    'Permission',
-    'RolePermission',
-    'all',
-] as const;
+type Subjects =
+    | InferSubjects<
+          | typeof User
+          | typeof Role
+          | typeof NotificationLog
+          | typeof ApiKey
+          | typeof Permission
+          | typeof RolePermission,
+          true
+      >
+    | 'all'
+    | 'ViewAllNotificationLog';
 
-export type AppAbility = MongoAbility<
-    [
-        (typeof Actions)[number],
-        (typeof Subject)[number] | Exclude<(typeof Subject)[number], 'all'>,
-    ]
->;
+export type AppAbility = MongoAbility<[Actions, Subjects], MongoQuery>;
 
 @Injectable()
 export class CaslAbilityFactory {
@@ -38,15 +48,8 @@ export class CaslAbilityFactory {
             );
 
             response.forEach((element) => {
-                can(
-                    element.permission.action as (typeof Actions)[number],
-                    element.permission.subject as (typeof Subject)[number],
-                );
+                can(element.permission.action, element.permission.subject);
             });
-
-            // if super admin, can manage all
-            // if system operator, can read the notification record that is tied to the apikeys that they generated
-            // if user, can read the notification record tied to their personal apikey
         } catch (e) {
             console.error(e);
             throw new InternalServerErrorException('Casl Ability Error');
@@ -54,7 +57,7 @@ export class CaslAbilityFactory {
 
         return build({
             detectSubjectType: (item) =>
-                item as ExtractSubjectType<typeof Subject>,
+                item.constructor as ExtractSubjectType<Subjects>,
         });
     }
 }

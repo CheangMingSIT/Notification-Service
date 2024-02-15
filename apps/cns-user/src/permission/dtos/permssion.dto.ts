@@ -1,24 +1,21 @@
-import { Actions } from '@app/auth';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import {
-    IsEnum,
-    IsNotEmpty,
-    IsObject,
-    IsOptional,
-    IsString,
-} from 'class-validator';
+import { Actions, SubjectsType } from '@app/auth';
+import { ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEnum, IsObject, IsOptional } from 'class-validator';
 
 export class PermissionDto {
-    @ApiProperty({ enum: Actions })
+    @ApiPropertyOptional({ enum: Actions })
     @IsEnum(Actions, {
-        message: 'Action must be either create, read, update or delete',
+        message: 'Action must be either manage, create, read, update or delete',
     })
-    @IsNotEmpty({ message: 'Action is required' })
+    @IsOptional()
     action: Actions;
 
-    @ApiProperty({ type: 'string' })
-    @IsString()
-    @IsNotEmpty({ message: 'Subject is required' })
+    @ApiPropertyOptional({ enum: SubjectsType })
+    @IsEnum(SubjectsType, {
+        message:
+            'Subject must be either User, ApiKey, NotificationRecord, Permission, RolePermission or all',
+    })
+    @IsOptional()
     subject: string;
 
     @ApiPropertyOptional({ type: 'object' })

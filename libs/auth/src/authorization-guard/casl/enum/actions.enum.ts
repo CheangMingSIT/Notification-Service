@@ -5,3 +5,12 @@ export enum Actions {
     Update = 'update',
     Delete = 'delete',
 }
+
+export enum SubjectsType {
+    User = 'User',
+    ApiKey = 'ApiKey',
+    NotificationRecord = 'NotificationRecord',
+    Permission = 'Permission',
+    RolePermission = 'RolePermission',
+    All = 'all',
+}

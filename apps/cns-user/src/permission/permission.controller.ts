@@ -1,9 +1,5 @@
 import { Actions, CheckPolicies, JwtAuthGuard } from '@app/auth';
-import {
-    HttpExceptionFilter,
-    NOTIFICATIONSYSTEM,
-    PaginationDto,
-} from '@app/common';
+import { HttpExceptionFilter, NOTIFICATIONSYSTEM } from '@app/common';
 import {
     Body,
     Controller,
@@ -18,6 +14,7 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
+import { PermissionListDto } from './dtos/permission-list.dto';
 import { PermissionDto } from './dtos/permssion.dto';
 import { PermissionService } from './permission.service';
 
@@ -31,7 +28,7 @@ export class PermissionController {
     @UseGuards(JwtAuthGuard)
     @UseFilters(HttpExceptionFilter)
     @CheckPolicies((ability: any) => ability.can('read', 'Permission'))
-    async listPermissions(@Query() query: PaginationDto) {
+    async listPermissions(@Query() query: PermissionListDto) {
         const response = await this.permissionService.listPermissions(query);
         return {
             status: HttpStatus.OK,

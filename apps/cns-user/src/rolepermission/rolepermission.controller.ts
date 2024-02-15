@@ -13,9 +13,9 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
-import { RolePermissionDto } from './dtos/rolepermission.dto';
-import { SelectRoleIdDto } from './dtos/selectRoleId.dto';
-import { updateRolePermissionDto } from './dtos/updateRolePermission.dto';
+import { RolePermissionDto } from './dtos/role-permission.dto';
+import { SelectRoleIdDto } from './dtos/select-roleId.dto';
+import { updateRolePermissionDto } from './dtos/update-role-permission.dto';
 import { RolepermissionService } from './rolepermission.service';
 
 @Controller({ version: '1', path: NOTIFICATIONSYSTEM })

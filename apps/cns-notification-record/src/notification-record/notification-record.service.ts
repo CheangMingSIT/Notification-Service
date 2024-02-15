@@ -8,16 +8,36 @@ import { RecordDto } from './dtos/record.dto';
 export class NotificationRecordService {
     constructor(
         @InjectModel(NotificationLog.name)
-        private notificationLog: Model<NotificationLog>,
+        private notificationRecord: Model<NotificationLog>,
     ) {}
-    async fetchNotificationLog(query: RecordDto) {
-        const { apikey, userId, startDate, endDate, page, limit } = query;
+
+    fetchByUserId(userId: string, query: RecordDto) {
+        return this.fetchRecords(query, userId);
+    }
+
+    fetchByApiKey(secretKey: string, query: RecordDto) {
+        return this.fetchRecords(query, undefined, secretKey);
+    }
+
+    fetchByAdmin(query: RecordDto) {
+        return this.fetchRecords(query);
+    }
+
+    private async fetchRecords(
+        query: RecordDto,
+        userId?: string,
+        secretKey?: string,
+    ) {
+        const { id, startDate, endDate, page, limit } = query;
         let conditions = [];
-        if (apikey) {
-            conditions.push({ apikey: apikey });
+        if (id) {
+            conditions.push({ _id: id });
+        }
+        if (secretKey) {
+            conditions.push({ secretKey });
         }
         if (userId) {
-            conditions.push({ userId: userId });
+            conditions.push({ userId });
         }
         if (startDate || endDate) {
             let dateCondition = {};
@@ -30,21 +50,27 @@ export class NotificationRecordService {
             conditions.push({ scheduleDate: dateCondition });
         }
         try {
-            const res = await this.notificationLog
+            const res = await this.notificationRecord
                 .find(
-                    conditions.length > 0 ? { $or: conditions } : { _id: null },
+                    conditions.length > 0
+                        ? { $and: conditions }
+                        : { _id: null },
                 )
                 .skip((page - 1) * limit)
                 .limit(limit)
                 .exec();
             const transformedResult = res.map((item) => {
                 return {
+                    id: item._id,
+                    userId: item.userId,
+                    secretKey: item.secretKey,
                     channel: item.channel,
                     subject: item.subject,
                     message: Buffer.from(item.message).toString('utf-8'),
                     recipient: item.recipient,
                     sender: item.sender,
                     status: item.status,
+                    scheduleDate: item.scheduleDate,
                 };
             });
             return transformedResult;

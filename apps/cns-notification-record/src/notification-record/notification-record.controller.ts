@@ -3,11 +3,22 @@ import {
     ApiAuthGuard,
     AppAbility,
     CheckPolicies,
+    JwtAuthGuard,
     PolicyGuard,
 } from '@app/auth';
 import { HttpExceptionFilter, NOTIFICATIONSYSTEM } from '@app/common';
-import { Controller, Get, Query, UseFilters, UseGuards } from '@nestjs/common';
+import {
+    Controller,
+    ForbiddenException,
+    Get,
+    Headers,
+    Query,
+    Request,
+    UseFilters,
+    UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiSecurity, ApiTags } from '@nestjs/swagger';
+import { AdminViewRecords } from './dtos/admin-view-records.dto';
 import { RecordDto } from './dtos/record.dto';
 import { NotificationRecordService } from './notification-record.service';
 
@@ -18,17 +29,67 @@ export class NotificationRecordController {
         private readonly notificationRecord: NotificationRecordService,
     ) {}
 
-    @Get('fetchRecord')
-    @ApiSecurity('ApiKeyAuth')
+    @Get('fetchRecordByUserId')
     @ApiBearerAuth()
-    @UseGuards(ApiAuthGuard, PolicyGuard)
+    @UseGuards(JwtAuthGuard, PolicyGuard)
     @UseFilters(HttpExceptionFilter)
     @CheckPolicies((ability: AppAbility) =>
-        ability.can(Actions.Read, 'NotificationRecord'),
+        ability.can(Actions.Read, 'NotificationLog'),
     )
-    async fetchNotificationLog(@Query() query: RecordDto) {
-        const response =
-            await this.notificationRecord.fetchNotificationLog(query);
-        return response;
+    async fetchNotificationLog(@Request() req, @Query() query: RecordDto) {
+        try {
+            const response = await this.notificationRecord.fetchByUserId(
+                req.user.userId,
+                query,
+            );
+            return response;
+        } catch (error) {
+            console.error(error);
+            throw new ForbiddenException('Forbidden');
+        }
+    }
+
+    @Get('fetchRecordByApiKey')
+    @ApiSecurity('ApiKeyAuth')
+    @UseFilters(HttpExceptionFilter)
+    @UseGuards(ApiAuthGuard)
+    async fetchNotificationLogByApiKey(
+        @Headers() headers,
+        @Query() query: RecordDto,
+    ) {
+        if (!headers.secretkey) {
+            throw new ForbiddenException('Missing secret key');
+        }
+        try {
+            const response = await this.notificationRecord.fetchByApiKey(
+                headers.secretkey,
+                query,
+            );
+            return response;
+        } catch (error) {
+            if (error instanceof ForbiddenException) {
+                throw error;
+            } else {
+                console.error(error);
+                throw new ForbiddenException('Forbidden');
+            }
+        }
+    }
+
+    @Get('fetchRecordsByAdmin')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, PolicyGuard)
+    @UseFilters(HttpExceptionFilter)
+    @CheckPolicies((ability: AppAbility) =>
+        ability.can(Actions.Read, 'ViewAllNotificationLog'),
+    )
+    async fetchNotificationLogByAdmin(@Query() query: AdminViewRecords) {
+        try {
+            const response = await this.notificationRecord.fetchByAdmin(query);
+            return response;
+        } catch (error) {
+            console.error(error);
+            throw new ForbiddenException('Forbidden');
+        }
     }
 }

@@ -1,4 +1,4 @@
-import { PaginationDto, Permission } from '@app/common';
+import { Permission } from '@app/common';
 import {
     BadRequestException,
     HttpException,
@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { PermissionListDto } from './dtos/permission-list.dto';
 
 @Injectable()
 export class PermissionService {
@@ -15,10 +16,14 @@ export class PermissionService {
         private permissionRepo: Repository<Permission>,
     ) {}
 
-    async listPermissions(query: PaginationDto): Promise<any> {
-        const { page, limit } = query;
+    async listPermissions(query: PermissionListDto): Promise<any> {
+        const { page, limit, action, subject } = query;
         try {
             const permissions = await this.permissionRepo.find({
+                where: {
+                    action: action ? action : undefined,
+                    subject: subject ? subject : undefined,
+                },
                 skip: (page - 1) * limit,
                 take: limit,
             });

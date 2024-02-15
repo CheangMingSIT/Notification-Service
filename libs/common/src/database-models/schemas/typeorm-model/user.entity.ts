@@ -12,6 +12,8 @@ import type { Role } from './role.entity';
 
 @Entity('User', { schema: 'User', database: 'User' })
 export class User {
+    static readonly modelName = 'User';
+
     @PrimaryGeneratedColumn('uuid', { name: 'userId' })
     userId: string;
 

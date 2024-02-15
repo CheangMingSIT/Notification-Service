@@ -1,4 +1,4 @@
-export { AppAbility } from './casl/casl-ability.factory';
+export { AppAbility, CaslAbilityFactory } from './casl/casl-ability.factory';
 export * from './casl/casl-ability.module';
 export * from './casl/decorator/policy-handler.decorator';
 export * from './casl/enum/actions.enum';

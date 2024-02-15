@@ -1,11 +1,12 @@
-import { PaginationDto, User } from '@app/common';
+import { User } from '@app/common';
 import {
     BadRequestException,
     Injectable,
     InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
+import { UserListDto } from './dtos/user-list.dto';
 import { UserRoleIdDto } from './dtos/user-role-update.dto';
 
 @Injectable()
@@ -13,18 +14,26 @@ export class UserService {
     constructor(
         @InjectRepository(User, 'postgres') private userRepo: Repository<User>,
     ) {}
-    async listUsers(query: PaginationDto) {
-        const { page, limit } = query;
+    async listUsers(query: UserListDto) {
+        const { page, limit, name, role } = query;
         try {
             const users = await this.userRepo.find({
+                relations: ['role'],
+                where: {
+                    name: name ? Like(`${name}%`) : undefined,
+                    role: {
+                        role: role ? role : undefined,
+                    },
+                },
                 skip: (page - 1) * limit,
                 take: limit,
             });
             const payload = users.map((user) => {
                 return {
                     userId: user.userId,
+                    name: user.name,
                     email: user.email,
-                    roleId: user.roleId,
+                    role: user.role.role,
                 };
             });
             return {
@@ -35,6 +44,26 @@ export class UserService {
                 },
             };
         } catch (error) {
+            throw new InternalServerErrorException(error.message);
+        }
+    }
+    async getUser(userId: string) {
+        try {
+            const user = await this.userRepo.findOne({
+                where: { userId },
+                relations: ['role'],
+            });
+            if (!user) {
+                throw new BadRequestException('User does not exist');
+            }
+            return {
+                userId: user.userId,
+                name: user.name,
+                email: user.email,
+                role: user.role.role,
+            };
+        } catch (error) {
+            console.error('Error occurred while getting user:', error);
             throw new InternalServerErrorException(error.message);
         }
     }

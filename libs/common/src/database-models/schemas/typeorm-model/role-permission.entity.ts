@@ -10,6 +10,7 @@ import type { Role } from './role.entity';
 
 @Entity('RolePermission', { schema: 'User', database: 'User' })
 export class RolePermission {
+    static readonly modelName = 'RolePermission';
     @PrimaryColumn('int', { name: 'roleId' })
     roleId: number;
 

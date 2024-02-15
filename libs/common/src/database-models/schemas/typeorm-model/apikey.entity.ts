@@ -10,6 +10,7 @@ import type { User } from './user.entity';
 
 @Entity('ApiKey', { schema: 'User', database: 'User' })
 export class ApiKey {
+    static readonly modelName = 'ApiKey';
     @PrimaryGeneratedColumn('uuid', { name: 'id' })
     id: string;
 

@@ -3,6 +3,7 @@ import { Document } from 'mongoose';
 
 @Schema()
 export class NotificationLog extends Document {
+    static readonly modelName = 'NotificationLog';
     @Prop()
     _id: string;
 

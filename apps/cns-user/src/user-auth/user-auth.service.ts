@@ -89,8 +89,11 @@ export class UserAuthService {
     }): Promise<string> {
         const { userId, email, roleId, refreshToken } = user;
         try {
-            const payload = await this.userRepo.findOneBy({ userId });
-            if (!payload || !payload.refreshToken) {
+            const payload = await this.userRepo.findOne({
+                where: { userId },
+                relations: ['role'],
+            });
+            if (!payload || !payload.role) {
                 throw new ForbiddenException('Access Denied');
             }
             const isMatch = await bcrypt.compare(
@@ -114,8 +117,7 @@ export class UserAuthService {
             if (error instanceof ForbiddenException) {
                 throw error;
             } else {
-                console.error('Error occurred while refreshing token:', error);
-                throw new InternalServerErrorException('Internal Server Error');
+                console.log('Error occurred while refreshing token:', error);
             }
         }
     }

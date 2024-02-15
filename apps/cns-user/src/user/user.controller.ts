@@ -5,11 +5,7 @@ import {
     JwtAuthGuard,
     PolicyGuard,
 } from '@app/auth';
-import {
-    HttpExceptionFilter,
-    NOTIFICATIONSYSTEM,
-    PaginationDto,
-} from '@app/common';
+import { HttpExceptionFilter, NOTIFICATIONSYSTEM } from '@app/common';
 import {
     Body,
     Controller,
@@ -23,6 +19,7 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
+import { UserListDto } from './dtos/user-list.dto';
 import { UserRoleIdDto } from './dtos/user-role-update.dto';
 import { UserService } from './user.service';
 
@@ -36,11 +33,25 @@ export class UserController {
     @UseGuards(JwtAuthGuard, PolicyGuard)
     @CheckPolicies((ability: AppAbility) => ability.can(Actions.Read, 'User'))
     @UseFilters(HttpExceptionFilter)
-    async listUsers(@Query() query: PaginationDto) {
+    async listUsers(@Query() query: UserListDto) {
         const response = await this.userService.listUsers(query);
         return {
             status: HttpStatus.OK,
             data: response.data.users,
+        };
+    }
+
+    @Get('getUser/:userId')
+    @ApiBearerAuth()
+    @ApiParam({ name: 'userId', type: String })
+    @UseGuards(JwtAuthGuard, PolicyGuard)
+    @CheckPolicies((ability: AppAbility) => ability.can(Actions.Read, 'User'))
+    @UseFilters(HttpExceptionFilter)
+    async getUser(@Param('userId') userId: string) {
+        const response = await this.userService.getUser(userId);
+        return {
+            status: HttpStatus.OK,
+            data: response,
         };
     }
 
