@@ -12,6 +12,9 @@ export class Role {
     @Column('varchar')
     role: string;
 
+    @Column('boolean', { default: false, name: 'disabled' })
+    disabled: boolean;
+
     @OneToMany('User', (user: User) => user.role)
     users: User[];
 

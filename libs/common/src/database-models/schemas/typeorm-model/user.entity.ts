@@ -38,4 +38,7 @@ export class User {
     @ManyToOne('Role', (role: Role) => role.users)
     @JoinColumn([{ name: 'roleId', referencedColumnName: 'id' }])
     role: Relation<Role>;
+
+    @Column('boolean', { default: false, name: 'disabled' })
+    disabled: boolean;
 }

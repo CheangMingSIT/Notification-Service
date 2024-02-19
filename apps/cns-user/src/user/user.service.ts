@@ -34,6 +34,7 @@ export class UserService {
                     name: user.name,
                     email: user.email,
                     role: user.role.role,
+                    disabled: user.disabled,
                 };
             });
             return {
@@ -60,6 +61,7 @@ export class UserService {
                 userId: user.userId,
                 name: user.name,
                 email: user.email,
+                roleId: user.roleId,
                 role: user.role.role,
             };
         } catch (error) {
@@ -103,6 +105,48 @@ export class UserService {
                 throw error;
             } else {
                 console.error('Error occurred while deleting user:', error);
+                throw new InternalServerErrorException(error.message);
+            }
+        }
+    }
+
+    async enableUser(userId: string) {
+        try {
+            const existingUser = await this.userRepo.findOne({
+                where: { userId },
+            });
+            if (!existingUser) {
+                throw new BadRequestException('User does not exist');
+            }
+            await this.userRepo.update(existingUser.userId, {
+                disabled: false,
+            });
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            } else {
+                console.error('Error occurred while enabling user:', error);
+                throw new InternalServerErrorException(error.message);
+            }
+        }
+    }
+
+    async disableUser(userId: string) {
+        try {
+            const existingUser = await this.userRepo.findOne({
+                where: { userId },
+            });
+            if (!existingUser) {
+                throw new BadRequestException('User does not exist');
+            }
+            await this.userRepo.update(existingUser.userId, {
+                disabled: true,
+            });
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            } else {
+                console.error('Error occurred while disabling user:', error);
                 throw new InternalServerErrorException(error.message);
             }
         }

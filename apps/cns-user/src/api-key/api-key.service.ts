@@ -1,4 +1,4 @@
-import { ApiKey, PaginationDto } from '@app/common';
+import { ApiKey } from '@app/common';
 import {
     BadRequestException,
     Injectable,
@@ -6,7 +6,8 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomBytes } from 'crypto';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
+import { SearchTokenDto } from './dtos/search-token.dto';
 
 interface ApiKeyRecord {
     readonly name: string;
@@ -39,16 +40,11 @@ export class ApiKeyService {
         }
     }
 
-    async listApiKeys(
-        userId: string,
-        pagination: PaginationDto,
-    ): Promise<Object> {
-        const { page, limit } = pagination;
+    async listApiKeys(userId: string, query: SearchTokenDto): Promise<Object> {
+        const { name } = query;
         try {
             const response = await this.apiKeyRepo.find({
-                where: { userId },
-                skip: (page - 1) * limit,
-                take: limit,
+                where: { userId, name: name ? Like(`${name}%`) : undefined },
             });
             return response.map((record) => {
                 return {

@@ -5,11 +5,7 @@ import {
     JwtAuthGuard,
     PolicyGuard,
 } from '@app/auth';
-import {
-    HttpExceptionFilter,
-    NOTIFICATIONSYSTEM,
-    PaginationDto,
-} from '@app/common';
+import { HttpExceptionFilter, NOTIFICATIONSYSTEM } from '@app/common';
 import {
     Body,
     Controller,
@@ -26,6 +22,7 @@ import {
 import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
 import { ApiKeyService } from './api-key.service';
 import { GenerateTokenDto } from './dtos/generate-token.dto';
+import { SearchTokenDto } from './dtos/search-token.dto';
 
 @Controller({ version: '1', path: NOTIFICATIONSYSTEM })
 @ApiBearerAuth()
@@ -56,13 +53,13 @@ export class ApiKeyController {
     @CheckPolicies((ability: AppAbility) => ability.can(Actions.Read, 'ApiKey'))
     async listApiKeys(
         @Request() req,
-        @Query() pagination: PaginationDto,
-    ): Promise<{ status: number; response: object }> {
+        @Query() query: SearchTokenDto,
+    ): Promise<{ status: number; data: object }> {
         const response = await this.apiKeyService.listApiKeys(
             req.user.userId,
-            pagination,
+            query,
         );
-        return { status: HttpStatus.OK, response: response };
+        return { status: HttpStatus.OK, data: response };
     }
 
     @Delete('deleteApiKey/:secretKeyId')

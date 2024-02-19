@@ -85,4 +85,32 @@ export class UserController {
             message: response,
         };
     }
+
+    @Patch('enableUser/:userId')
+    @ApiBearerAuth()
+    @ApiParam({ name: 'userId', type: String })
+    @UseGuards(JwtAuthGuard, PolicyGuard)
+    @CheckPolicies((ability: AppAbility) => ability.can(Actions.Update, 'User'))
+    @UseFilters(HttpExceptionFilter)
+    async enableUser(@Param('userId') userId: string) {
+        const response = await this.userService.enableUser(userId);
+        return {
+            status: HttpStatus.OK,
+            message: response,
+        };
+    }
+
+    @Patch('disableUser/:userId')
+    @ApiBearerAuth()
+    @ApiParam({ name: 'userId', type: String })
+    @UseGuards(JwtAuthGuard, PolicyGuard)
+    @CheckPolicies((ability: AppAbility) => ability.can(Actions.Update, 'User'))
+    @UseFilters(HttpExceptionFilter)
+    async disableUser(@Param('userId') userId: string) {
+        const response = await this.userService.disableUser(userId);
+        return {
+            status: HttpStatus.OK,
+            message: response,
+        };
+    }
 }
