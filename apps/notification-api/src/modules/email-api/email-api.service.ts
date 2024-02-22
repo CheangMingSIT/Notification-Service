@@ -1,17 +1,20 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { v4 as uuidv4 } from 'uuid';
-
 import {
     ApiKey,
     NotificationLog,
     RK_NOTIFICATION_EMAIL,
     RabbitmqService,
 } from '@app/common';
+import {
+    HttpStatus,
+    Injectable,
+    InternalServerErrorException,
+} from '@nestjs/common';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { InjectRepository } from '@nestjs/typeorm';
+import { GridFSBucket } from 'mongodb';
+import { Connection, Model } from 'mongoose';
 import { Repository } from 'typeorm';
-import { EmailInputDto } from './dtos/email-api.dto';
+import { v4 as uuidv4 } from 'uuid';
 
 interface EmailLog {
     readonly _id: string;
@@ -22,25 +25,65 @@ interface EmailLog {
     readonly sender: string;
     readonly recipient: string[];
     readonly scheduleDate: Date;
+    readonly fileIds?: string[];
     readonly secretKey: string;
     readonly userId: string;
 }
+
 @Injectable()
 export class EmailApiService {
+    bucket: GridFSBucket;
     constructor(
         private readonly rabbitMQService: RabbitmqService,
         @InjectModel(NotificationLog.name)
         private notificationLogModel: Model<NotificationLog>,
         @InjectRepository(ApiKey, 'postgres')
         private apiKeyRepo: Repository<ApiKey>,
-    ) {}
+        @InjectConnection() private connection: Connection,
+    ) {
+        this.initializeGridFSBucket();
+    }
 
-    async publishEmail(body: EmailInputDto, file: any, secretKey: string) {
+    private initializeGridFSBucket() {
+        if (!this.connection.readyState) {
+            this.connection.once('open', () => {
+                console.log('Connected to the database');
+                this.bucket = new GridFSBucket(this.connection.db, {
+                    bucketName: 'fs',
+                });
+            });
+        } else {
+            console.log('Database connection already established');
+            this.bucket = new GridFSBucket(this.connection.db, {
+                bucketName: 'fs',
+            });
+        }
+    }
+    async publishEmail(
+        body: {
+            from: string;
+            to: string[];
+            cc?: string[];
+            bcc?: string[];
+            subject: string;
+            body: string;
+        },
+        files: any[],
+        secretKey: string,
+    ) {
         const _id = uuidv4();
-        let mergeRecipients = [];
+        let mergeRecipients: string[] = [];
         let response: Boolean;
-        const payload = { _id, ...body, file, secretKey };
+        let fileIds: string[] = [];
         try {
+            const { userId } = await this.apiKeyRepo.findOneBy({ secretKey });
+            if (files && files.length > 0) {
+                for (const file of files) {
+                    const id = await this.uploadFile(file);
+                    fileIds.push(id);
+                }
+            }
+            const payload = { _id, body, fileIds };
             response = await this.rabbitMQService.publish(
                 RK_NOTIFICATION_EMAIL,
                 payload,
@@ -51,16 +94,11 @@ export class EmailApiService {
                     message: 'Email failed to add to the queue',
                 };
             }
-            const { userId } = await this.apiKeyRepo.findOneBy({ secretKey });
-            if (body.cc) {
-                mergeRecipients = [...body.to, ...body.cc];
-            } else if (body.bcc) {
-                mergeRecipients = [...body.to, ...body.bcc];
-            } else if (body.cc && body.bcc) {
-                mergeRecipients = [...body.to, ...body.cc, ...body.bcc];
-            } else {
-                mergeRecipients = [...body.to];
-            }
+            mergeRecipients = [
+                ...(body.cc || []),
+                ...(body.bcc || []),
+                ...body.to,
+            ];
 
             const log: EmailLog = {
                 _id,
@@ -70,6 +108,7 @@ export class EmailApiService {
                 message: body.body,
                 sender: body.from,
                 recipient: mergeRecipients,
+                fileIds,
                 scheduleDate: new Date(),
                 secretKey,
                 userId,
@@ -82,10 +121,31 @@ export class EmailApiService {
                 message: 'Email added to the queue successfully',
             };
         } catch (error) {
+            console.error(error);
             return {
                 status: HttpStatus.INTERNAL_SERVER_ERROR,
                 message: 'Something went wrong',
             };
+        }
+    }
+
+    async uploadFile(file: any): Promise<string> {
+        if (!this.bucket) {
+            throw new InternalServerErrorException(
+                'Database connection not established',
+            );
+        }
+
+        try {
+            const fileStream = this.bucket.openUploadStream(file.originalname, {
+                contentType: file.mimetype,
+            });
+            const fileBuffer = Buffer.from(file.buffer);
+            fileStream.write(fileBuffer);
+            fileStream.end();
+            return fileStream.id.toString();
+        } catch (error) {
+            throw new InternalServerErrorException('Failed to upload file');
         }
     }
 }

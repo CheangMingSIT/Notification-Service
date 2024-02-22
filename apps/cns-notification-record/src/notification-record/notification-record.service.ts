@@ -23,11 +23,7 @@ export class NotificationRecordService {
         return this.fetchRecords(query);
     }
 
-    private async fetchRecords(
-        query: RecordDto,
-        userId?: string,
-        secretKey?: string,
-    ) {
+    async fetchRecords(query: RecordDto, userId?: string, secretKey?: string) {
         const { id, startDate, endDate, page, limit } = query;
         let conditions = [];
         if (id) {

@@ -4,15 +4,15 @@ import {
     Body,
     Controller,
     Headers,
+    HttpStatus,
     Post,
     UploadedFiles,
     UseFilters,
     UseGuards,
     UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiConsumes, ApiSecurity, ApiTags } from '@nestjs/swagger';
-import { EmailInputDto } from './dtos/email-api.dto';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { ApiTags } from '@nestjs/swagger';
 import { EmailApiService } from './email-api.service';
 
 @Controller({ version: '1', path: NOTIFICATIONAPI })
@@ -21,24 +21,28 @@ export class EmailApiController {
     constructor(private readonly emailApiService: EmailApiService) {}
 
     @Post('/email')
-    @ApiConsumes('multipart/form-data')
-    @ApiSecurity('ApiKeyAuth')
     @UseGuards(ApiAuthGuard)
-    @UseInterceptors(FileInterceptor('file'))
+    @UseInterceptors(AnyFilesInterceptor())
     @UseFilters(HttpExceptionFilter)
     async publishEmail(
         @Headers() headers,
-        @Body() body: EmailInputDto,
-        @UploadedFiles() file: Array<Express.Multer.File>,
-    ): Promise<{ status; message }> {
+        @Body()
+        body: {
+            from: string;
+            to: [string];
+            cc?: string[];
+            bcc?: string[];
+            subject: string;
+            body: string;
+        },
+        @UploadedFiles()
+        files: Array<Express.Multer.File>,
+    ): Promise<{ status: HttpStatus; message: string }> {
         const response = await this.emailApiService.publishEmail(
             body,
-            file,
+            files,
             headers.secretkey,
         );
-        return {
-            status: response.status,
-            message: response.message,
-        };
+        return response;
     }
 }

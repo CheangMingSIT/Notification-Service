@@ -2,6 +2,7 @@ import {
     Actions,
     ApiAuthGuard,
     AppAbility,
+    CaslAbilityFactory,
     CheckPolicies,
     JwtAuthGuard,
     PolicyGuard,
@@ -27,7 +28,14 @@ import { NotificationRecordService } from './notification-record.service';
 export class NotificationRecordController {
     constructor(
         private readonly notificationRecord: NotificationRecordService,
+        private caslAbilityFactory: CaslAbilityFactory,
     ) {}
+
+    @Get('fetchRecord')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @UseFilters(HttpExceptionFilter)
+    async readLog(@Request() req, @Query() query: RecordDto) {}
 
     @Get('fetchRecordByUserId')
     @ApiBearerAuth()

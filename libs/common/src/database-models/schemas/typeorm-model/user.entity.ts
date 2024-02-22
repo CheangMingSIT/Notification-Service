@@ -12,6 +12,25 @@ import type { Role } from './role.entity';
 
 @Entity('User', { schema: 'User', database: 'User' })
 export class User {
+    constructor(
+        userId: string,
+        name: string,
+        email: string,
+        password: string,
+        roleId: number,
+        refreshToken: string,
+        role: Role,
+        disabled: boolean,
+    ) {
+        this.userId = userId;
+        this.name = name;
+        this.email = email;
+        this.password = password;
+        this.roleId = roleId;
+        this.refreshToken = refreshToken;
+        this.role = role;
+        this.disabled = disabled;
+    }
     static readonly modelName = 'User';
 
     @PrimaryGeneratedColumn('uuid', { name: 'userId' })

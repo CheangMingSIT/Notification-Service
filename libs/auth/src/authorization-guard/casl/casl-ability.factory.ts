@@ -1,4 +1,12 @@
 import {
+    ApiKey,
+    NotificationLog,
+    Permission,
+    Role,
+    RolePermission,
+    User,
+} from '@app/common';
+import {
     AbilityBuilder,
     ExtractSubjectType,
     InferSubjects,
@@ -7,15 +15,6 @@ import {
     createMongoAbility,
 } from '@casl/ability';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-
-import {
-    ApiKey,
-    NotificationLog,
-    Permission,
-    Role,
-    RolePermission,
-    User,
-} from '@app/common';
 import { CaslAbilityService } from './casl-ability.service';
 import { Actions } from './enum/actions.enum';
 
@@ -50,6 +49,12 @@ export class CaslAbilityFactory {
             response.forEach((element) => {
                 can(element.permission.action, element.permission.subject);
             });
+
+            if (user.roleId === 2) {
+                can(Actions.Read, 'NotificationLog', {
+                    userId: { $ne: user.userId },
+                });
+            }
         } catch (e) {
             console.error(e);
             throw new InternalServerErrorException('Casl Ability Error');

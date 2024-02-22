@@ -26,14 +26,11 @@ export class SmsApiController {
     async sendSMS(
         @Body() body: SmsInputDto,
         @Headers() headers,
-    ): Promise<{ success; message }> {
+    ): Promise<object> {
         const response = await this.smsApiService.publishSMS(
             body,
             headers.secretkey,
         );
-        return {
-            success: response.status,
-            message: response.message,
-        };
+        return response;
     }
 }

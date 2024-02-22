@@ -10,6 +10,11 @@ import type { User } from './user.entity';
 
 @Entity('ApiKey', { schema: 'User', database: 'User' })
 export class ApiKey {
+    constructor(name: string, secretKey: string, userId: string) {
+        this.name = name;
+        this.secretKey = secretKey;
+        this.userId = userId;
+    }
     static readonly modelName = 'ApiKey';
     @PrimaryGeneratedColumn('uuid', { name: 'id' })
     id: string;

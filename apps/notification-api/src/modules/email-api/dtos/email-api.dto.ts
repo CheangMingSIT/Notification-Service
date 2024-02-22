@@ -1,4 +1,10 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import {
+    IsArray,
+    IsEmail,
+    IsNotEmpty,
+    IsOptional,
+    IsString,
+} from 'class-validator';
 
 export class EmailInputDto {
     @IsEmail()
@@ -26,5 +32,7 @@ export class EmailInputDto {
     body: string;
 
     @IsOptional()
+    @IsArray()
+    @IsString({ each: true })
     files: any[];
 }

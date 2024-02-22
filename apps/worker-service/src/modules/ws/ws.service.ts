@@ -6,10 +6,11 @@ import {
 } from '@app/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import * as fs from 'fs';
 import Handlebars from 'handlebars';
-import { Model } from 'mongoose';
+import { GridFSBucket, ObjectId } from 'mongodb';
+import { Connection, Model } from 'mongoose';
 import { join } from 'path';
 
 interface MailReponse {
@@ -24,14 +25,37 @@ const template = fs.readFileSync(
     join(__dirname + '/template/template.hbs'),
     'utf8',
 );
+
+function mail(): Promise<MailReponse> {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            console.log('Sending email...');
+            resolve({ response: '250' });
+        }, 2000);
+    });
+} // Mock Mail Reponse
+
+function sms(): Promise<SMSReponse> {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            console.log('Sending SMS...');
+            resolve({ cancelled: false });
+        }, 2000);
+    });
+} // Mock SMS Reponse
+
 @Injectable()
 export class WsService implements OnApplicationBootstrap {
+    bucket: GridFSBucket;
     constructor(
         private readonly rabbitMQService: RabbitmqService,
         private readonly mailerService: MailerService,
         @InjectModel(NotificationLog.name)
         private notificationLogModel: Model<NotificationLog>,
-    ) {}
+        @InjectConnection() private connection: Connection,
+    ) {
+        this.initializeGridFSBucket();
+    }
 
     onApplicationBootstrap() {
         this.rabbitMQService.subscribe(
@@ -44,55 +68,62 @@ export class WsService implements OnApplicationBootstrap {
         );
     }
 
+    private initializeGridFSBucket() {
+        if (!this.connection.readyState) {
+            this.connection.once('open', () => {
+                console.log('Connected to the database');
+                this.bucket = new GridFSBucket(this.connection.db, {
+                    bucketName: 'fs',
+                });
+            });
+        } else {
+            console.log('Database connection already established');
+            this.bucket = new GridFSBucket(this.connection.db, {
+                bucketName: 'fs',
+            });
+        }
+    }
+
     private async updateStatus(userId: string, status: string) {
         return await this.notificationLogModel.updateOne(
-            {
-                _id: userId,
-            },
-            {
-                $set: { status: status },
-            },
+            { _id: userId },
+            { $set: { status: status } },
         );
     }
 
     private async handleEmailMessage(emailPayload: any) {
-        const messageWithTemplate = Handlebars.compile(template);
-        const message = messageWithTemplate({ content: emailPayload.body });
-        const payload = {
-            from: emailPayload.from,
-            to: emailPayload.to,
-            subject: emailPayload.subject,
-            html: message,
-        };
-        if (emailPayload.cc) {
-            payload['cc'] = emailPayload.cc;
-        }
-        if (emailPayload.bcc) {
-            payload['bcc'] = emailPayload.bcc;
-        }
-        if (emailPayload.file !== undefined) {
-            payload['attachments'] = [
-                {
-                    filename: emailPayload.file.originalname,
-                    content: Buffer.from(emailPayload.file.buffer).toString(
-                        'base64',
-                    ),
-                    encoding: 'base64',
-                },
-            ];
-        }
-
-        function mail(): Promise<MailReponse> {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    console.log('Sending email...');
-                    resolve({ response: '250' });
-                }, 2000);
-            });
-        } // Mock Mail Reponse
         try {
-            // const response = await this.mailerService.sendMail(payload);
-            const response = await mail();
+            const messageWithTemplate = Handlebars.compile(template);
+            const message = messageWithTemplate({
+                content: emailPayload.body.body,
+            });
+            const payload = {
+                from: emailPayload.body.from,
+                to: emailPayload.body.to,
+                subject: emailPayload.body.subject,
+                html: message,
+                attachments: [],
+            };
+            if (emailPayload.body.cc) {
+                payload['cc'] = emailPayload.body.cc;
+            }
+            if (emailPayload.body.bcc) {
+                payload['bcc'] = emailPayload.body.bcc;
+            }
+            for (const file of emailPayload.fileIds) {
+                const fileStream = this.bucket.openDownloadStream(
+                    new ObjectId(file),
+                );
+                const fileName = this.bucket.find({ _id: new ObjectId(file) });
+                for await (const doc of fileName) {
+                    payload.attachments.push({
+                        filename: doc.filename,
+                        content: fileStream,
+                    });
+                }
+            }
+            const response = await this.mailerService.sendMail(payload);
+            // const response = await mail();
             if (response.response.includes('250')) {
                 this.updateStatus(emailPayload._id, 'SUCCESS');
             } else {
@@ -105,15 +136,6 @@ export class WsService implements OnApplicationBootstrap {
     }
 
     private async handleSMSMessage(smsPayload: any) {
-        function mail(): Promise<SMSReponse> {
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    console.log('Sending SMS...');
-                    resolve({ cancelled: false });
-                }, 2000);
-            });
-        } // Mock SMS Reponse
-
         try {
             // const response = await fetch(
             //     'https://sms.api.sinch.com/xms/v1/5b121cd7f3544f81b6cb929e842ef141/batches',
@@ -132,7 +154,7 @@ export class WsService implements OnApplicationBootstrap {
             //     },
             // );
             // const data = await response.json();
-            const data = await mail();
+            const data = await sms();
             if (data.cancelled === false) {
                 await this.updateStatus(smsPayload._id, 'SUCCESS');
             } else {
