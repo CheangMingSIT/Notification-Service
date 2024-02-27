@@ -121,7 +121,6 @@ export class RolepermissionService {
                             id: rolePermission.permission.permissionId,
                             action: rolePermission.permission.action,
                             subject: rolePermission.permission.subject,
-                            conditions: rolePermission.permission.conditions,
                         };
                     }),
                 };

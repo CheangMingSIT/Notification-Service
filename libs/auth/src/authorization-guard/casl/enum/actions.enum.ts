@@ -9,7 +9,7 @@ export enum Actions {
 export enum SubjectsType {
     User = 'User',
     ApiKey = 'ApiKey',
-    NotificationRecord = 'NotificationRecord',
+    NotificationLog = 'NotificationLog',
     Role = 'Role',
     Permission = 'Permission',
     RolePermission = 'RolePermission',

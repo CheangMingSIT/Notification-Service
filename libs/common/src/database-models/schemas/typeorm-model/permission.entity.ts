@@ -21,7 +21,7 @@ export class Permission {
     subject: string;
 
     @Column('jsonb', { nullable: true })
-    conditions: object | null;
+    condition: object;
 
     @OneToMany(
         'RolePermission',

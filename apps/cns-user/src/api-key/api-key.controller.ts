@@ -48,17 +48,13 @@ export class ApiKeyController {
     }
 
     @Get('apiKeyRecords')
-    @UseGuards(JwtAuthGuard, PolicyGuard)
+    @UseGuards(JwtAuthGuard)
     @UseFilters(HttpExceptionFilter)
-    @CheckPolicies((ability: AppAbility) => ability.can(Actions.Read, 'ApiKey'))
     async listApiKeys(
         @Request() req,
         @Query() query: SearchTokenDto,
     ): Promise<{ status: number; data: object }> {
-        const response = await this.apiKeyService.listApiKeys(
-            req.user.userId,
-            query,
-        );
+        const response = await this.apiKeyService.listApiKeys(req.user, query);
         return { status: HttpStatus.OK, data: response };
     }
 

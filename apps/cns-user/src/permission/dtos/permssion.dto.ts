@@ -1,6 +1,6 @@
 import { Actions, SubjectsType } from '@app/auth';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEnum, IsObject, IsOptional } from 'class-validator';
+import { IsEnum, IsOptional } from 'class-validator';
 
 export class PermissionDto {
     @ApiPropertyOptional({ enum: Actions })
@@ -17,9 +17,4 @@ export class PermissionDto {
     })
     @IsOptional()
     subject: string;
-
-    @ApiPropertyOptional({ type: 'object' })
-    @IsObject()
-    @IsOptional()
-    conditions: object;
 }

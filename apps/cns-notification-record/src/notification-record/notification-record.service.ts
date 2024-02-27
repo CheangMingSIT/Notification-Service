@@ -1,39 +1,46 @@
-import { NotificationLog } from '@app/common';
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { CaslAbilityFactory } from '@app/auth';
+import { NotificationLog, User } from '@app/common';
+import { AccessibleRecordModel } from '@casl/mongoose';
+import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { RecordDto } from './dtos/record.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class NotificationRecordService {
     constructor(
         @InjectModel(NotificationLog.name)
-        private notificationRecord: Model<NotificationLog>,
+        private notificationRecord: AccessibleRecordModel<NotificationLog>,
+        @InjectRepository(User, 'postgres')
+        private userRepository: Repository<User>,
+        private readonly caslAbilityFactory: CaslAbilityFactory,
     ) {}
 
-    fetchByUserId(userId: string, query: RecordDto) {
-        return this.fetchRecords(query, userId);
-    }
-
-    fetchByApiKey(secretKey: string, query: RecordDto) {
-        return this.fetchRecords(query, undefined, secretKey);
-    }
-
-    fetchByAdmin(query: RecordDto) {
-        return this.fetchRecords(query);
-    }
-
-    async fetchRecords(query: RecordDto, userId?: string, secretKey?: string) {
-        const { id, startDate, endDate, page, limit } = query;
-        let conditions = [];
-        if (id) {
-            conditions.push({ _id: id });
-        }
+    async retrieveRecord(user: any, secretKey: any, query: any) {
         if (secretKey) {
-            conditions.push({ secretKey });
+            const res = await this.notificationRecord
+                .find({
+                    secretKey,
+                })
+                .sort({ scheduleDate: -1 })
+                .exec();
+            return res.map((record) => {
+                return {
+                    id: record._id,
+                    channel: record.channel,
+                    status: record.status,
+                    scheduleDate: record.scheduleDate,
+                };
+            });
         }
-        if (userId) {
-            conditions.push({ userId });
+        const { id, ApiKey, startDate, endDate, page, limit } = query;
+        const ability = await this.caslAbilityFactory.defineAbilitiesFor(user);
+        const condition = [];
+        if (id) {
+            condition.push({ id });
+        }
+        if (ApiKey) {
+            condition.push({ ApiKey });
         }
         if (startDate || endDate) {
             let dateCondition = {};
@@ -43,38 +50,29 @@ export class NotificationRecordService {
             if (endDate) {
                 dateCondition['$lte'] = endDate;
             }
-            conditions.push({ scheduleDate: dateCondition });
+            condition.push({ scheduleDate: dateCondition });
         }
-        try {
-            const res = await this.notificationRecord
-                .find(
-                    conditions.length > 0
-                        ? { $and: conditions }
-                        : { _id: null },
-                )
-                .skip((page - 1) * limit)
-                .limit(limit)
-                .exec();
-            const transformedResult = res.map((item) => {
-                return {
-                    id: item._id,
-                    userId: item.userId,
-                    secretKey: item.secretKey,
-                    channel: item.channel,
-                    subject: item.subject,
-                    message: Buffer.from(item.message).toString('utf-8'),
-                    recipient: item.recipient,
-                    sender: item.sender,
-                    status: item.status,
-                    scheduleDate: item.scheduleDate,
-                };
-            });
-            return transformedResult;
-        } catch (error) {
-            console.error(error);
-            throw new InternalServerErrorException(
-                "Couldn't fetch notification log",
-            );
-        }
+        const res = await this.notificationRecord
+            .accessibleBy(ability)
+            .where(condition.length ? { $and: condition } : { _id: null })
+            .skip(page)
+            .limit(limit);
+
+        const transformedResult = res.map((record) => {
+            return {
+                id: record._id,
+                userId: record.userId,
+                secretKey: record.secretKey,
+                channel: record.channel,
+                subject: record.subject,
+                message: Buffer.from(record.message).toString('utf8'),
+                recipient: record.recipient,
+                sender: record.sender,
+                status: record.status,
+                scheduleDate: record.scheduleDate,
+            };
+        });
+
+        return transformedResult;
     }
 }

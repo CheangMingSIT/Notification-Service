@@ -8,17 +8,14 @@ import {
 } from '@app/common';
 import {
     AbilityBuilder,
-    ExtractSubjectType,
     InferSubjects,
     MongoAbility,
-    MongoQuery,
     createMongoAbility,
 } from '@casl/ability';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CaslAbilityService } from './casl-ability.service';
 import { Actions } from './enum/actions.enum';
-
-type Subjects =
+export type Subjects =
     | InferSubjects<
           | typeof User
           | typeof Role
@@ -28,15 +25,14 @@ type Subjects =
           | typeof RolePermission,
           true
       >
-    | 'all'
-    | 'ViewAllNotificationLog';
+    | 'all';
 
-export type AppAbility = MongoAbility<[Actions, Subjects], MongoQuery>;
+export type AppAbility = MongoAbility<[Actions, Subjects]>;
 
 @Injectable()
 export class CaslAbilityFactory {
     constructor(private readonly caslAbilityService: CaslAbilityService) {}
-    async createForUser(user: any) {
+    async defineAbilitiesFor(user: any) {
         const { can, build } = new AbilityBuilder<AppAbility>(
             createMongoAbility,
         );
@@ -44,25 +40,33 @@ export class CaslAbilityFactory {
         try {
             response = await this.caslAbilityService.identifyAbility(
                 user.roleId,
+                user.userId,
             );
-
             response.forEach((element) => {
-                can(element.permission.action, element.permission.subject);
+                can(
+                    element.permission.action,
+                    element.permission.subject,
+                    element.permission.condition,
+                );
             });
-
-            if (user.roleId === 2) {
-                can(Actions.Read, 'NotificationLog', {
-                    userId: { $ne: user.userId },
-                });
-            }
         } catch (e) {
             console.error(e);
             throw new InternalServerErrorException('Casl Ability Error');
         }
 
-        return build({
-            detectSubjectType: (item) =>
-                item.constructor as ExtractSubjectType<Subjects>,
-        });
+        return build();
     }
+
+    // async defineAbilitiesFor(user: any) {
+    //     const { can, cannot, build } = new AbilityBuilder<AppAbility>(
+    //         createMongoAbility,
+    //     );
+
+    //     can(Actions.Read, 'NotificationLog', {
+    //         userId: { $eq: user.userId },
+    //     });
+    //     can(Actions.Read, 'ApiKey', null);
+
+    //     return build();
+    // }
 }

@@ -1,3 +1,4 @@
+import { CaslAbilityFactory } from '@app/auth';
 import { User } from '@app/common';
 import {
     BadRequestException,
@@ -13,6 +14,7 @@ import { UserRoleIdDto } from './dtos/user-role-update.dto';
 export class UserService {
     constructor(
         @InjectRepository(User, 'postgres') private userRepo: Repository<User>,
+        private readonly caslAbilityFactory: CaslAbilityFactory,
     ) {}
     async listUsers(query: UserListDto) {
         const { page, limit, name, role } = query;

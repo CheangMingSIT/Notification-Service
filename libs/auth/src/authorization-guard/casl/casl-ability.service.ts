@@ -5,7 +5,7 @@ import { CaslAbilityRepository } from './casl-ability.repository';
 export class CaslAbilityService {
     constructor(private caslAbilityRepository: CaslAbilityRepository) {}
 
-    async identifyAbility(roleId: any) {
-        return await this.caslAbilityRepository.identifyAbility(roleId);
+    async identifyAbility(roleId: any, userId: any) {
+        return await this.caslAbilityRepository.identifyAbility(roleId, userId);
     }
 }

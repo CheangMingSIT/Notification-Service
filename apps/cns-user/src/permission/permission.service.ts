@@ -31,6 +31,7 @@ export class PermissionService {
                 return {
                     action: permission.action,
                     subject: permission.subject,
+                    condition: permission.condition,
                 };
             });
             return {
@@ -50,12 +51,11 @@ export class PermissionService {
         subject: string;
         conditions: object;
     }) {
-        const { action, subject, conditions } = body;
+        const { action, subject } = body;
         try {
             const newPermission = this.permissionRepo.create({
                 action,
                 subject,
-                conditions,
             });
             await this.permissionRepo.save(newPermission);
             return 'Permission created successfully';
@@ -79,7 +79,6 @@ export class PermissionService {
             await this.permissionRepo.update(existingPermission.permissionId, {
                 action,
                 subject,
-                conditions,
             });
             return 'Permission updated successfully';
         } catch (error) {

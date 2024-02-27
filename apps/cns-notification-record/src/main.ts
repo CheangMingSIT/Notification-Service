@@ -39,6 +39,7 @@ async function bootstrap() {
 
     const document = SwaggerModule.createDocument(app, config, options);
     SwaggerModule.setup('cns-notification-record', app, document);
+
     await app.listen(3050);
 
     if (module.hot) {
