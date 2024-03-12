@@ -1,15 +1,13 @@
-import { Actions, CaslAbilityFactory } from '@app/auth';
-import { ApiKey } from '@app/common';
-import { rulesToAST } from '@casl/ability/extra';
+import { CaslAbilityFactory } from '@app/auth';
+import { ApiKey, User } from '@app/common';
 import {
     BadRequestException,
     Injectable,
     InternalServerErrorException,
-    UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomBytes } from 'crypto';
-import { Like, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { SearchTokenDto } from './dtos/search-token.dto';
 
 interface ApiKeyRecord {
@@ -22,6 +20,8 @@ export class ApiKeyService {
     constructor(
         @InjectRepository(ApiKey, 'postgres')
         private apiKeyRepo: Repository<ApiKey>,
+        @InjectRepository(User, 'postgres')
+        private userRepo: Repository<User>,
         private readonly caslAbilityFactory: CaslAbilityFactory,
     ) {}
 
@@ -68,43 +68,20 @@ export class ApiKeyService {
             }
         }
     }
-    async listApiKeys(user: any, query: SearchTokenDto) {
+    async listApiKeys(currentUser: any, query: SearchTokenDto) {
         try {
-            const ability =
-                await this.caslAbilityFactory.defineAbilitiesFor(user);
-            const condition = rulesToAST(ability, Actions.Read, 'ApiKey');
-            if (ability.can(Actions.Read, 'ApiKey')) {
-                if (condition['field'] === 'userId') {
-                    const result = await this.apiKeyRepo.find({
-                        where: {
-                            userId: condition.value
-                                ? condition.value.toString()
-                                : undefined,
-                            name: query.name
-                                ? Like(`${query.name}%`)
-                                : undefined,
-                        },
-                    });
-                    return result;
-                } else {
-                    return await this.apiKeyRepo.find({
-                        where: {
-                            name: query.name
-                                ? Like(`${query.name}%`)
-                                : undefined,
-                        },
-                    });
-                }
-            } else if (ability.cannot(Actions.Read, 'ApiKey')) {
-                throw new UnauthorizedException(
-                    "You don't have access to read",
-                );
+            const user = await this.userRepo.findOne({
+                where: { userId: currentUser.userId },
+                relations: ['role'],
+            });
+            if (user.role.hasFullDataControl === true) {
+                return await this.apiKeyRepo.find();
             }
+            return await this.apiKeyRepo.find({
+                where: { userId: currentUser.userId },
+            });
         } catch (error) {
             console.error('Error occurred while fetching API keys:', error);
-            if (error instanceof UnauthorizedException) {
-                throw error;
-            }
             throw new InternalServerErrorException(
                 "Couldn't fetch api keys. Something went wrong!",
             );

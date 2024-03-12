@@ -2,10 +2,8 @@ import {
     ApiKey,
     NotificationLog,
     NotificationLogSchema,
-    Permission,
     RabbitMqModule,
     Role,
-    RolePermission,
     User,
 } from '@app/common';
 import { EmailApiController } from './email-api.controller';
@@ -27,10 +25,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         MongooseModule.forFeature([
             { name: NotificationLog.name, schema: NotificationLogSchema },
         ]),
-        TypeOrmModule.forFeature(
-            [ApiKey, User, Role, RolePermission, Permission],
-            'postgres',
-        ),
+        TypeOrmModule.forFeature([ApiKey, User, Role], 'postgres'),
     ],
     controllers: [EmailApiController],
     providers: [EmailApiService],

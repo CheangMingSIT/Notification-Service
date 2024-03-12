@@ -1,10 +1,10 @@
 {
     "name": "common-notification-services",
-    "version": "1.0.0",
+    "version": "1.2.0",
     "description": "CNS",
     "author": "Cheang Ming",
     "private": true,
-    "license": "UNLICENSED",
+    "license": "MIT",
     "scripts": {
         "build": "nest build",
         "format": "prettier --write \"apps/**/*.ts\" \"libs/**/*.ts\"",
@@ -44,6 +44,7 @@
         "class-transformer": "^0.5.1",
         "class-validator": "^0.14.1",
         "handlebars": "^4.7.8",
+        "lodash": "^4.17.21",
         "mongo-gridfs": "^1.1.0",
         "mongodb": "^6.3.0",
         "mongoose": "^8.1.1",

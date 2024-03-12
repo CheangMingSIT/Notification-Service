@@ -15,13 +15,10 @@ export class Permission {
     permissionId: number;
 
     @Column('varchar')
-    action: string;
+    operation: string;
 
     @Column('varchar')
-    subject: string;
-
-    @Column('jsonb', { nullable: true })
-    condition: object;
+    resource: string;
 
     @OneToMany(
         'RolePermission',

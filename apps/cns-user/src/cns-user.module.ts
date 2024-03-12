@@ -3,6 +3,7 @@ import { MongoDBModule, PostgresDBModule } from '@app/common';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { ApiAuthModule } from './api-key/api-key.module';
+import { OrganisationModule } from './organisation/organisation.module';
 import { PermissionModule } from './permission/permission.module';
 import { RoleModule } from './role/role.module';
 import { RolepermissionModule } from './rolepermission/rolepermission.module';
@@ -23,6 +24,7 @@ import { UserModule } from './user/user.module';
         RolepermissionModule,
         UserValidationModule,
         ApiAuthModule,
+        OrganisationModule,
     ],
 })
 export class CnsUserModule {}

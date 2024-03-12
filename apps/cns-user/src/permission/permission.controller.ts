@@ -1,9 +1,8 @@
-import { Actions, CheckPolicies, JwtAuthGuard } from '@app/auth';
+import { CheckPolicies, JwtAuthGuard } from '@app/auth';
 import { HttpExceptionFilter, NOTIFICATIONSYSTEM } from '@app/common';
 import {
     Body,
     Controller,
-    Delete,
     Get,
     HttpStatus,
     Param,
@@ -14,9 +13,14 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
-import { PermissionListDto } from './dtos/permission-list.dto';
 import { PermissionDto } from './dtos/permssion.dto';
 import { PermissionService } from './permission.service';
+
+interface resourceOperation {
+    permissionId: number;
+    operation: [string];
+    resources: string;
+}
 
 @Controller({ version: '1', path: NOTIFICATIONSYSTEM })
 @ApiBearerAuth()
@@ -28,11 +32,12 @@ export class PermissionController {
     @UseGuards(JwtAuthGuard)
     @UseFilters(HttpExceptionFilter)
     @CheckPolicies((ability: any) => ability.can('read', 'Permission'))
-    async listPermissions(@Query() query: PermissionListDto) {
-        const response = await this.permissionService.listPermissions(query);
+    async listPermissions(@Query() query: PermissionDto) {
+        let response = await this.permissionService.listPermissions(query);
+
         return {
             status: HttpStatus.OK,
-            data: response.data.permissions,
+            data: response,
         };
     }
 
@@ -62,21 +67,6 @@ export class PermissionController {
             permissionId,
             body,
         );
-        return {
-            status: HttpStatus.OK,
-            message: response,
-        };
-    }
-
-    @Delete('deletePermission/:permissionId')
-    @ApiParam({ name: 'permissionId', required: true, type: 'number' })
-    @UseGuards(JwtAuthGuard)
-    @UseFilters(HttpExceptionFilter)
-    @CheckPolicies((ability: any) => ability.can(Actions.Delete, 'Permission'))
-    async deletePermission(@Param('permissionId') permission: number) {
-        const permissionId = Number(permission);
-        const response =
-            await this.permissionService.deletePermission(permissionId);
         return {
             status: HttpStatus.OK,
             message: response,

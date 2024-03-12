@@ -14,8 +14,8 @@ import {
 } from '@casl/ability';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CaslAbilityService } from './casl-ability.service';
-import { Actions } from './enum/actions.enum';
-export type Subjects =
+import { Operation } from './enum/permission.enum';
+export type Resource =
     | InferSubjects<
           | typeof User
           | typeof Role
@@ -27,7 +27,7 @@ export type Subjects =
       >
     | 'all';
 
-export type AppAbility = MongoAbility<[Actions, Subjects]>;
+export type AppAbility = MongoAbility<[Operation, Resource]>;
 
 @Injectable()
 export class CaslAbilityFactory {
@@ -37,16 +37,23 @@ export class CaslAbilityFactory {
             createMongoAbility,
         );
         let response: any;
+        let condition: any;
         try {
             response = await this.caslAbilityService.identifyAbility(
                 user.roleId,
+            );
+            condition = await this.caslAbilityService.identitfyConditions(
                 user.userId,
             );
             response.forEach((element) => {
                 can(
-                    element.permission.action,
-                    element.permission.subject,
-                    element.permission.condition,
+                    element.permission.operation,
+                    element.permission.resource,
+                    condition.condition,
+                    // {
+                    //     'user.organisationId':
+                    //         '920779e0-7d28-4bef-a50c-2ded75ef26f7',
+                    // },
                 );
             });
         } catch (e) {
@@ -56,17 +63,4 @@ export class CaslAbilityFactory {
 
         return build();
     }
-
-    // async defineAbilitiesFor(user: any) {
-    //     const { can, cannot, build } = new AbilityBuilder<AppAbility>(
-    //         createMongoAbility,
-    //     );
-
-    //     can(Actions.Read, 'NotificationLog', {
-    //         userId: { $eq: user.userId },
-    //     });
-    //     can(Actions.Read, 'ApiKey', null);
-
-    //     return build();
-    // }
 }

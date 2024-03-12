@@ -1,12 +1,9 @@
-import { CheckPolicies, JwtAuthGuard } from '@app/auth';
+import { CheckPolicies, JwtAuthGuard, Operation } from '@app/auth';
 import { HttpExceptionFilter, NOTIFICATIONSYSTEM } from '@app/common';
 import {
     Body,
     Controller,
-    Delete,
     Get,
-    HttpStatus,
-    Patch,
     Post,
     Query,
     UseFilters,
@@ -15,7 +12,6 @@ import {
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { RolePermissionDto } from './dtos/role-permission.dto';
 import { SelectRoleIdDto } from './dtos/select-roleId.dto';
-import { updateRolePermissionDto } from './dtos/update-role-permission.dto';
 import { RolepermissionService } from './rolepermission.service';
 
 @Controller({ version: '1', path: NOTIFICATIONSYSTEM })
@@ -29,56 +25,28 @@ export class RolepermissionController {
     @Post('createRolePermission')
     @UseGuards(JwtAuthGuard)
     @UseFilters(HttpExceptionFilter)
-    @CheckPolicies((ability: any) => ability.can('create', 'RolePermission'))
+    @CheckPolicies((ability: any) =>
+        ability.can(Operation.Create, 'RolePermission'),
+    )
     createRolePermission(@Body() body: RolePermissionDto) {
         const response = this.rolePermissionService.createRoleWithPermission(
             body.role,
-            body.permissionId,
+            body.hasFullDataControl,
+            body.permission,
         );
-        return {
-            status: HttpStatus.OK,
-            message: response,
-        };
-    }
-
-    @Patch('updateRolePermission')
-    @UseGuards(JwtAuthGuard)
-    @UseFilters(HttpExceptionFilter)
-    @CheckPolicies((ability: any) => ability.can('update', 'RolePermission'))
-    updateRolePermission(@Body() body: updateRolePermissionDto) {
-        const response = this.rolePermissionService.updateRoleWithPermission(
-            body.roleId,
-            body.permissionId,
-        );
-        return {
-            status: HttpStatus.OK,
-            response: response,
-        };
-    }
-
-    @Delete('deleteRole')
-    @UseGuards(JwtAuthGuard)
-    @UseFilters(HttpExceptionFilter)
-    @CheckPolicies((ability: any) => ability.can('delete', 'RolePermission'))
-    deleteRole(@Body() body: SelectRoleIdDto) {
-        const response = this.rolePermissionService.deleteRole(body.roleId);
-        return {
-            status: HttpStatus.OK,
-            response: response,
-        };
+        return response;
     }
 
     @Get('ListRolePermission')
     @UseGuards(JwtAuthGuard)
     @UseFilters(HttpExceptionFilter)
-    @CheckPolicies((ability: any) => ability.can('read', 'RolePermission'))
+    @CheckPolicies((ability: any) =>
+        ability.can(Operation.Read, 'RolePermission'),
+    )
     async listRolePermission(@Query() query: SelectRoleIdDto): Promise<Object> {
         const response = await this.rolePermissionService.listRolePermission(
             query.roleId,
         );
-        return {
-            status: HttpStatus.OK,
-            response: JSON.parse(JSON.stringify(response)),
-        };
+        return response;
     }
 }

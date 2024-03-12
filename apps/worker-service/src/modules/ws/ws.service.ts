@@ -111,10 +111,12 @@ export class WsService implements OnApplicationBootstrap {
                 payload['bcc'] = emailPayload.body.bcc;
             }
             for (const file of emailPayload.fileIds) {
-                const fileStream = this.bucket.openDownloadStream(
+                const fileStream = await this.bucket.openDownloadStream(
                     new ObjectId(file),
                 );
-                const fileName = this.bucket.find({ _id: new ObjectId(file) });
+                const fileName = await this.bucket.find({
+                    _id: new ObjectId(file),
+                });
                 for await (const doc of fileName) {
                     payload.attachments.push({
                         filename: doc.filename,

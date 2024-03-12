@@ -1,15 +1,14 @@
 import {
-    Actions,
     AppAbility,
     CheckPolicies,
     JwtAuthGuard,
+    Operation,
     PolicyGuard,
 } from '@app/auth';
 import { HttpExceptionFilter, NOTIFICATIONSYSTEM } from '@app/common';
 import {
     Body,
     Controller,
-    Delete,
     Get,
     HttpStatus,
     Param,
@@ -31,7 +30,7 @@ export class UserController {
     @Get('listUsers')
     @ApiBearerAuth()
     @UseGuards(JwtAuthGuard, PolicyGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Actions.Read, 'User'))
+    @CheckPolicies((ability: AppAbility) => ability.can(Operation.Read, 'User'))
     @UseFilters(HttpExceptionFilter)
     async listUsers(@Query() query: UserListDto) {
         const response = await this.userService.listUsers(query);
@@ -45,7 +44,7 @@ export class UserController {
     @ApiBearerAuth()
     @ApiParam({ name: 'userId', type: String })
     @UseGuards(JwtAuthGuard, PolicyGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Actions.Read, 'User'))
+    @CheckPolicies((ability: AppAbility) => ability.can(Operation.Read, 'User'))
     @UseFilters(HttpExceptionFilter)
     async getUser(@Param('userId') userId: string) {
         const response = await this.userService.getUser(userId);
@@ -60,7 +59,9 @@ export class UserController {
     @ApiBody({ type: UserRoleIdDto })
     @ApiParam({ name: 'userId', type: String })
     @UseGuards(JwtAuthGuard, PolicyGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Actions.Update, 'User'))
+    @CheckPolicies((ability: AppAbility) =>
+        ability.can(Operation.Update, 'User'),
+    )
     @UseFilters(HttpExceptionFilter)
     async updateUser(
         @Param('userId') userId: string,
@@ -73,24 +74,13 @@ export class UserController {
         };
     }
 
-    @Delete('deleteUser/:userId')
-    @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, PolicyGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Actions.Delete, 'User'))
-    @UseFilters(HttpExceptionFilter)
-    async deleteUser(@Param('userId') userId: string) {
-        const response = await this.userService.deleteUser(userId);
-        return {
-            status: HttpStatus.OK,
-            message: response,
-        };
-    }
-
     @Patch('enableUser/:userId')
     @ApiBearerAuth()
     @ApiParam({ name: 'userId', type: String })
     @UseGuards(JwtAuthGuard, PolicyGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Actions.Update, 'User'))
+    @CheckPolicies((ability: AppAbility) =>
+        ability.can(Operation.Update, 'User'),
+    )
     @UseFilters(HttpExceptionFilter)
     async enableUser(@Param('userId') userId: string) {
         const response = await this.userService.enableUser(userId);
@@ -104,13 +94,25 @@ export class UserController {
     @ApiBearerAuth()
     @ApiParam({ name: 'userId', type: String })
     @UseGuards(JwtAuthGuard, PolicyGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Actions.Update, 'User'))
+    @CheckPolicies((ability: AppAbility) =>
+        ability.can(Operation.Update, 'User'),
+    )
     @UseFilters(HttpExceptionFilter)
     async disableUser(@Param('userId') userId: string) {
         const response = await this.userService.disableUser(userId);
         return {
             status: HttpStatus.OK,
             message: response,
+        };
+    }
+
+    @Get('getUserGroups')
+    @UseFilters(HttpExceptionFilter)
+    async getUserGroups() {
+        const response = await this.userService.getUsersByOrganisation();
+        return {
+            status: HttpStatus.OK,
+            data: response,
         };
     }
 }

@@ -1,11 +1,5 @@
 import { CaslAbilityModule } from '@app/auth';
-import {
-    NotificationLog,
-    NotificationLogSchema,
-    Permission,
-    RolePermission,
-    User,
-} from '@app/common';
+import { NotificationLog, NotificationLogSchema, User } from '@app/common';
 import { accessibleRecordsPlugin } from '@casl/mongoose';
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -25,10 +19,7 @@ import { NotificationRecordService } from './notification-record.service';
                 },
             },
         ]),
-        TypeOrmModule.forFeature(
-            [User, RolePermission, Permission],
-            'postgres',
-        ),
+        TypeOrmModule.forFeature([User], 'postgres'),
         CaslAbilityModule,
     ],
     controllers: [NotificationRecordController],

@@ -6,6 +6,7 @@ import {
     InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { groupBy, orderBy } from 'lodash';
 import { Like, Repository } from 'typeorm';
 import { UserListDto } from './dtos/user-list.dto';
 import { UserRoleIdDto } from './dtos/user-role-update.dto';
@@ -92,26 +93,6 @@ export class UserService {
         }
     }
 
-    async deleteUser(userId: string) {
-        try {
-            const existingUser = await this.userRepo.findOneBy({
-                userId,
-            });
-            if (!existingUser) {
-                throw new BadRequestException('User does not exist');
-            }
-            await this.userRepo.delete(userId);
-            return 'Successfully deleted user';
-        } catch (error) {
-            if (error instanceof BadRequestException) {
-                throw error;
-            } else {
-                console.error('Error occurred while deleting user:', error);
-                throw new InternalServerErrorException(error.message);
-            }
-        }
-    }
-
     async enableUser(userId: string) {
         try {
             const existingUser = await this.userRepo.findOne({
@@ -151,6 +132,52 @@ export class UserService {
                 console.error('Error occurred while disabling user:', error);
                 throw new InternalServerErrorException(error.message);
             }
+        }
+    }
+
+    async getUsersByOrganisation() {
+        try {
+            const users = await this.userRepo
+                .find({
+                    relations: ['organisation', 'role'],
+                })
+                .then((users) => {
+                    return users.map((user) => {
+                        return {
+                            userId: user.userId,
+                            name: user.name,
+                            role: user.role.role,
+                            organisationId: user.organisationId,
+                            organisationName: user.organisation?.name,
+                        };
+                    });
+                });
+            // Separate the users with undefined organisationName and others
+            const undefinedOrganisationUsers = users.filter(
+                (user) => !user.organisationName,
+            );
+            const definedOrganisationUsers = users.filter(
+                (user) => user.organisationName,
+            );
+
+            // Sort the definedOrganisationUsers based on organisationName
+            const sortedUsers = orderBy(definedOrganisationUsers, [
+                (user) => user.organisationName.toLowerCase(),
+            ]);
+
+            const groupedUsers = [
+                ...sortedUsers,
+                ...undefinedOrganisationUsers,
+            ];
+
+            const groupUser = groupBy(
+                groupedUsers,
+                (user) => user.organisationName,
+            );
+            return groupUser;
+        } catch (error) {
+            console.error('Error occurred while get group users:', error);
+            throw new InternalServerErrorException(error.message);
         }
     }
 }

@@ -8,6 +8,7 @@ import {
     Relation,
 } from 'typeorm';
 import type { ApiKey } from './apikey.entity';
+import type { Organisation } from './organisation.entity';
 import type { Role } from './role.entity';
 
 @Entity('User', { schema: 'User', database: 'User' })
@@ -20,6 +21,7 @@ export class User {
         roleId: number,
         refreshToken: string,
         role: Role,
+        orgainsationId: string,
         disabled: boolean,
     ) {
         this.userId = userId;
@@ -28,6 +30,7 @@ export class User {
         this.password = password;
         this.roleId = roleId;
         this.refreshToken = refreshToken;
+        this.organisationId = orgainsationId;
         this.role = role;
         this.disabled = disabled;
     }
@@ -45,14 +48,24 @@ export class User {
     @Column('varchar')
     password: string;
 
-    @Column('int', { default: '3' }) // 1 = admin | 3 = user etc
+    @Column('int', { default: '2' }) // 1 = admin | 2 = user etc
     roleId: number;
 
     @Column('varchar', { nullable: true })
     refreshToken: string;
 
+    @Column('uuid', { name: 'organisationId', nullable: true })
+    organisationId: string;
+
     @OneToMany('ApiKey', (apiKey: ApiKey) => apiKey.user)
     apiKeys: ApiKey[];
+
+    @ManyToOne(
+        'Organisation',
+        (organisation: Organisation) => organisation.users,
+    )
+    @JoinColumn([{ name: 'organisationId', referencedColumnName: 'id' }])
+    organisation: Relation<Organisation>;
 
     @ManyToOne('Role', (role: Role) => role.users)
     @JoinColumn([{ name: 'roleId', referencedColumnName: 'id' }])

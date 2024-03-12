@@ -1,4 +1,4 @@
-export enum Actions {
+export enum Operation {
     Manage = 'manage',
     Create = 'create',
     Read = 'read',
@@ -6,12 +6,12 @@ export enum Actions {
     Delete = 'delete',
 }
 
-export enum SubjectsType {
+export enum Resource {
+    All = 'all',
     User = 'User',
     ApiKey = 'ApiKey',
     NotificationLog = 'NotificationLog',
     Role = 'Role',
     Permission = 'Permission',
     RolePermission = 'RolePermission',
-    All = 'all',
 }

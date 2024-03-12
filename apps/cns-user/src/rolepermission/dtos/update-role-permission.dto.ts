@@ -3,7 +3,7 @@ import { IsNotEmpty, IsNumber } from 'class-validator';
 import { RolePermissionDto } from './role-permission.dto';
 
 export class updateRolePermissionDto extends PickType(RolePermissionDto, [
-    'permissionId',
+    'permission',
 ] as const) {
     @ApiProperty({ type: Number })
     @IsNumber()

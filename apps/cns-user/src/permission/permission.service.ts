@@ -1,13 +1,8 @@
 import { Permission } from '@app/common';
-import {
-    BadRequestException,
-    HttpException,
-    HttpStatus,
-    Injectable,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { PermissionListDto } from './dtos/permission-list.dto';
+import { PermissionDto } from './dtos/permssion.dto';
 
 @Injectable()
 export class PermissionService {
@@ -16,46 +11,28 @@ export class PermissionService {
         private permissionRepo: Repository<Permission>,
     ) {}
 
-    async listPermissions(query: PermissionListDto): Promise<any> {
-        const { page, limit, action, subject } = query;
+    async listPermissions(query: PermissionDto): Promise<any> {
+        const { operation, resource } = query;
         try {
             const permissions = await this.permissionRepo.find({
                 where: {
-                    action: action ? action : undefined,
-                    subject: subject ? subject : undefined,
+                    operation: operation || undefined,
+                    resource: resource || undefined,
                 },
-                skip: (page - 1) * limit,
-                take: limit,
+                order: { resource: 'ASC' },
             });
-            const payload = permissions.map((permission) => {
-                return {
-                    action: permission.action,
-                    subject: permission.subject,
-                    condition: permission.condition,
-                };
-            });
-            return {
-                data: {
-                    permissions: payload,
-                    page: page,
-                    limit: limit,
-                },
-            };
+            return permissions;
         } catch (error) {
             throw new BadRequestException(error.message);
         }
     }
 
-    async createPermission(body: {
-        action: string;
-        subject: string;
-        conditions: object;
-    }) {
-        const { action, subject } = body;
+    async createPermission(body: PermissionDto) {
+        const { operation, resource } = body;
         try {
             const newPermission = this.permissionRepo.create({
-                action,
-                subject,
+                operation,
+                resource,
             });
             await this.permissionRepo.save(newPermission);
             return 'Permission created successfully';
@@ -64,11 +41,8 @@ export class PermissionService {
         }
     }
 
-    async updatePermission(
-        permissionId: number,
-        body: { action: string; subject: string; conditions: object },
-    ) {
-        const { action, subject, conditions } = body;
+    async updatePermission(permissionId: number, body: PermissionDto) {
+        const { operation, resource } = body;
         try {
             const existingPermission = await this.permissionRepo.findOneBy({
                 permissionId,
@@ -77,32 +51,12 @@ export class PermissionService {
                 throw new BadRequestException('Permission does not exist');
             }
             await this.permissionRepo.update(existingPermission.permissionId, {
-                action,
-                subject,
+                operation,
+                resource,
             });
             return 'Permission updated successfully';
         } catch (error) {
             throw new BadRequestException(error.message);
-        }
-    }
-
-    async deletePermission(permissionId: number) {
-        const existingPermission = await this.permissionRepo.findOneBy({
-            permissionId,
-        });
-        if (!existingPermission) {
-            throw new HttpException(
-                'Permission does not exists',
-                HttpStatus.OK,
-            );
-        }
-        try {
-            await this.permissionRepo.delete(existingPermission.permissionId);
-            return 'Permission deleted successfully';
-        } catch (error) {
-            throw new BadRequestException(
-                'There is an existing role tied to this permission. Please remove the associated permission from the role before deleting the permission.',
-            );
         }
     }
 }

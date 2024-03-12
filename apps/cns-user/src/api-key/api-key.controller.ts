@@ -1,8 +1,8 @@
 import {
-    Actions,
     AppAbility,
     CheckPolicies,
     JwtAuthGuard,
+    Operation,
     PolicyGuard,
 } from '@app/auth';
 import { HttpExceptionFilter, NOTIFICATIONSYSTEM } from '@app/common';
@@ -34,7 +34,7 @@ export class ApiKeyController {
     @UseGuards(JwtAuthGuard, PolicyGuard)
     @UseFilters(HttpExceptionFilter)
     @CheckPolicies((ability: AppAbility) =>
-        ability.can(Actions.Create, 'ApiKey'),
+        ability.can(Operation.Create, 'ApiKey'),
     )
     async generateToken(
         @Body() body: GenerateTokenDto,
@@ -63,7 +63,7 @@ export class ApiKeyController {
     @ApiParam({ name: 'secretKeyId', required: true, type: 'string' })
     @UseFilters(HttpExceptionFilter)
     @CheckPolicies((ability: AppAbility) =>
-        ability.can(Actions.Delete, 'ApiKey'),
+        ability.can(Operation.Delete, 'ApiKey'),
     )
     async deleteApiKey(
         @Request() req,

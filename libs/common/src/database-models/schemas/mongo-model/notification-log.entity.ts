@@ -13,7 +13,7 @@ export class NotificationLog extends Document {
         recipient: string[],
         scheduleDate: Date,
         secretKey: string,
-        userId: string,
+        user: object,
         fileIds: string,
     ) {
         super();
@@ -26,7 +26,10 @@ export class NotificationLog extends Document {
         this.recipient = recipient;
         this.scheduleDate = scheduleDate;
         this.secretKey = secretKey;
-        this.userId = userId;
+        this.user = {
+            userId: this.user.userId,
+            organisationId: this.user.organisationId,
+        };
         this.fileIds = fileIds;
     }
     static readonly modelName = 'NotificationLog';
@@ -57,8 +60,11 @@ export class NotificationLog extends Document {
     @Prop()
     secretKey: string;
 
-    @Prop()
-    userId: string;
+    @Prop({ type: Object })
+    user: {
+        userId: string;
+        organisationId: string;
+    };
 
     @Prop([String])
     fileIds: string;

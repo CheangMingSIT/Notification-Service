@@ -8,6 +8,7 @@ import {
     NotificationLog,
     RK_NOTIFICATION_SMS,
     RabbitmqService,
+    User,
 } from '@app/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -22,7 +23,10 @@ interface smsLog {
     readonly recipient: string[];
     readonly scheduleDate: Date;
     readonly secretKey: string;
-    readonly userId: string;
+    readonly user: {
+        readonly userId: string;
+        readonly organisationId: string;
+    };
 }
 
 @Injectable()
@@ -33,6 +37,8 @@ export class SmsApiService {
         private notificationLogModel: Model<NotificationLog>,
         @InjectRepository(ApiKey, 'postgres')
         private apiKeyRepo: Repository<ApiKey>,
+        @InjectRepository(User, 'postgres')
+        private userRepo: Repository<User>,
     ) {}
     async publishSMS(body: SmsInputDto, secretKey: string) {
         let _id = uuidv4();
@@ -44,7 +50,9 @@ export class SmsApiService {
             );
 
             const { userId } = await this.apiKeyRepo.findOneBy({ secretKey });
-
+            const { organisationId } = await this.userRepo.findOne({
+                where: { userId },
+            });
             const log: smsLog = {
                 _id,
                 channel: 'SMS',
@@ -54,7 +62,10 @@ export class SmsApiService {
                 recipient: body.recipient,
                 scheduleDate: new Date(),
                 secretKey,
-                userId,
+                user: {
+                    userId,
+                    organisationId,
+                },
             };
             const notificationLog = new this.notificationLogModel(log);
             await notificationLog.save();

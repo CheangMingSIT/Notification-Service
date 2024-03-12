@@ -3,6 +3,7 @@ import {
     NotificationLog,
     RK_NOTIFICATION_EMAIL,
     RabbitmqService,
+    User,
 } from '@app/common';
 import {
     HttpStatus,
@@ -27,7 +28,10 @@ interface EmailLog {
     readonly scheduleDate: Date;
     readonly fileIds?: string[];
     readonly secretKey: string;
-    readonly userId: string;
+    readonly user: {
+        readonly userId: string;
+        readonly organisationId: string;
+    };
 }
 
 @Injectable()
@@ -39,6 +43,8 @@ export class EmailApiService {
         private notificationLogModel: Model<NotificationLog>,
         @InjectRepository(ApiKey, 'postgres')
         private apiKeyRepo: Repository<ApiKey>,
+        @InjectRepository(User, 'postgres')
+        private userRepo: Repository<User>,
         @InjectConnection() private connection: Connection,
     ) {
         this.initializeGridFSBucket();
@@ -77,6 +83,9 @@ export class EmailApiService {
         let fileIds: string[] = [];
         try {
             const { userId } = await this.apiKeyRepo.findOneBy({ secretKey });
+            const { organisationId } = await this.userRepo.findOne({
+                where: { userId },
+            });
             if (files && files.length > 0) {
                 for (const file of files) {
                     const id = await this.uploadFile(file);
@@ -111,7 +120,10 @@ export class EmailApiService {
                 fileIds,
                 scheduleDate: new Date(),
                 secretKey,
-                userId,
+                user: {
+                    userId,
+                    organisationId,
+                },
             };
 
             const logModel = new this.notificationLogModel(log);

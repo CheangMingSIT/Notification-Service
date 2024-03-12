@@ -6,11 +6,14 @@ import type { User } from './user.entity';
 export class Role {
     static readonly modelName = 'Role';
 
-    @PrimaryGeneratedColumn('rowid', { name: 'id' })
+    @PrimaryGeneratedColumn('identity', { name: 'id' })
     id: number;
 
     @Column('varchar')
     role: string;
+
+    @Column('boolean', { default: false, name: 'hasFullDataControl' })
+    hasFullDataControl: boolean;
 
     @Column('boolean', { default: false, name: 'disabled' })
     disabled: boolean;

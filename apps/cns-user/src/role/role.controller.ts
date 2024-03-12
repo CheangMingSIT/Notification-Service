@@ -1,8 +1,8 @@
 import {
-    Actions,
     AppAbility,
     CheckPolicies,
     JwtAuthGuard,
+    Operation,
     PolicyGuard,
 } from '@app/auth';
 import { HttpExceptionFilter, NOTIFICATIONSYSTEM } from '@app/common';
@@ -24,7 +24,7 @@ export class RoleController {
 
     @Get('listRoles')
     @UseGuards(JwtAuthGuard, PolicyGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Actions.Read, 'Role'))
+    @CheckPolicies((ability: AppAbility) => ability.can(Operation.Read, 'Role'))
     @UseFilters(HttpExceptionFilter)
     async listRoles() {
         const response = await this.roleService.listRoles();

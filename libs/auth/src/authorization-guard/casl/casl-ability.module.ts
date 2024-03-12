@@ -1,4 +1,5 @@
 import {
+    Organisation,
     Permission,
     PostgresDBModule,
     Role,
@@ -15,7 +16,7 @@ import { CaslAbilityService } from './casl-ability.service';
     imports: [
         PostgresDBModule,
         TypeOrmModule.forFeature(
-            [User, Role, RolePermission, Permission],
+            [User, Role, RolePermission, Permission, Organisation],
             'postgres',
         ),
     ],

@@ -3,9 +3,9 @@ import { ApiProperty } from '@nestjs/swagger';
 import { IsDateString, IsOptional } from 'class-validator';
 
 export class RecordDto extends PaginationDto {
-    @ApiProperty({ type: 'string', required: false })
+    @ApiProperty({ type: 'string', required: false, format: 'uuid' })
     @IsOptional()
-    id: string;
+    _id: string;
 
     @ApiProperty({ type: [String], required: false })
     @IsOptional()

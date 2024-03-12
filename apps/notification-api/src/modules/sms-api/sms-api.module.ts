@@ -2,10 +2,8 @@ import {
     ApiKey,
     NotificationLog,
     NotificationLogSchema,
-    Permission,
     RabbitMqModule,
     Role,
-    RolePermission,
     User,
 } from '@app/common';
 import { Module } from '@nestjs/common';
@@ -20,10 +18,7 @@ import { SmsApiService } from './sms-api.service';
         MongooseModule.forFeature([
             { name: NotificationLog.name, schema: NotificationLogSchema },
         ]),
-        TypeOrmModule.forFeature(
-            [ApiKey, User, Role, RolePermission, Permission],
-            'postgres',
-        ),
+        TypeOrmModule.forFeature([ApiKey, User, Role], 'postgres'),
     ],
     controllers: [SmsApiController],
     providers: [SmsApiService],

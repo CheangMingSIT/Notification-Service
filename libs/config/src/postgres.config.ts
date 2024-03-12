@@ -1,3 +1,11 @@
+import {
+    ApiKey,
+    Organisation,
+    Permission,
+    Role,
+    RolePermission,
+    User,
+} from '@app/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import {
     TypeOrmModuleAsyncOptions,
@@ -16,7 +24,14 @@ export default class postgresConfig {
             password: configService.get('POSTGRES_PASSWORD'),
             database: configService.get('POSTGRES_DB'),
             url: configService.get('POSTGRES_URI'),
-            autoLoadEntities: true,
+            entities: [
+                User,
+                Organisation,
+                Permission,
+                RolePermission,
+                Role,
+                ApiKey,
+            ],
             synchronize: true,
         };
     }
@@ -27,7 +42,8 @@ export const postgresConfigAsync: TypeOrmModuleAsyncOptions = {
     imports: [ConfigModule],
     useFactory: async (
         configService: ConfigService,
-    ): Promise<TypeOrmModuleOptions> =>
-        postgresConfig.getPostgresConfig(configService),
+    ): Promise<TypeOrmModuleOptions> => {
+        return postgresConfig.getPostgresConfig(configService);
+    },
     inject: [ConfigService],
 };
