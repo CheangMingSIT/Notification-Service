@@ -1,6 +1,7 @@
 import {
     ApiKey,
     NotificationLog,
+    Organisation,
     Permission,
     Role,
     RolePermission,
@@ -18,6 +19,7 @@ import { Operation } from './enum/permission.enum';
 export type Resource =
     | InferSubjects<
           | typeof User
+          | typeof Organisation
           | typeof Role
           | typeof NotificationLog
           | typeof ApiKey

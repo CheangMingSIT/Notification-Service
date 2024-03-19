@@ -1,13 +1,16 @@
-import { CaslAbilityFactory } from '@app/auth';
+import { CaslAbilityFactory, Operation } from '@app/auth';
 import { ApiKey, User } from '@app/common';
+import { ForbiddenError } from '@casl/ability';
+import { rulesToAST } from '@casl/ability/extra';
 import {
     BadRequestException,
+    ForbiddenException,
     Injectable,
     InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomBytes } from 'crypto';
-import { Repository } from 'typeorm';
+import { Like, Repository } from 'typeorm';
 import { SearchTokenDto } from './dtos/search-token.dto';
 
 interface ApiKeyRecord {
@@ -43,16 +46,24 @@ export class ApiKeyService {
             );
         }
     }
-    async deleteApiKey(userId: string, secretKeyId: string): Promise<string> {
+    async deleteApiKey(currentUser: any, secretKeyId: string): Promise<string> {
         try {
+            const user = await this.userRepo.findOne({
+                where: { userId: currentUser.userId },
+                relations: ['role'],
+            });
+
             const existingApiKey = await this.apiKeyRepo.findOne({
-                where: { userId, id: secretKeyId },
+                where: user.role.hasFullDataControl
+                    ? { id: secretKeyId }
+                    : { userId: currentUser.userId, id: secretKeyId },
             });
             if (existingApiKey) {
-                await this.apiKeyRepo.delete({
-                    userId,
-                    id: secretKeyId,
-                });
+                await this.apiKeyRepo.delete(
+                    user.role.hasFullDataControl
+                        ? { id: secretKeyId }
+                        : { userId: currentUser.userId, id: secretKeyId },
+                );
                 return 'API Key deleted successfully';
             } else {
                 throw new BadRequestException('Invalid secret key');
@@ -70,18 +81,51 @@ export class ApiKeyService {
     }
     async listApiKeys(currentUser: any, query: SearchTokenDto) {
         try {
+            const ability =
+                await this.caslAbilityFactory.defineAbilitiesFor(currentUser);
+            ForbiddenError.from(ability)
+                .setMessage('Cannot Read ApiKey')
+                .throwUnlessCan(Operation.Read, ApiKey);
+            const checkPolices = rulesToAST(ability, Operation.Read, 'ApiKey');
             const user = await this.userRepo.findOne({
                 where: { userId: currentUser.userId },
                 relations: ['role'],
             });
             if (user.role.hasFullDataControl === true) {
-                return await this.apiKeyRepo.find();
+                const result = await this.apiKeyRepo.find({
+                    relations: ['user'],
+                    where: user.role.hasFullDataControl
+                        ? {
+                              name: query.name
+                                  ? Like(`${query.name}%`)
+                                  : undefined,
+                          }
+                        : {
+                              userId: currentUser.userId,
+                              name: query.name
+                                  ? Like(`${query.name}%`)
+                                  : undefined,
+                          },
+                });
+                const payload = result.map((apiKey) => ({
+                    id: apiKey.id,
+                    name: apiKey.name,
+                    secretKey: apiKey.secretKey,
+                    userId: apiKey.userId,
+                    organisationId: apiKey.user.organisationId,
+                }));
+                if (checkPolices['field'] === 'user.organisationId') {
+                    return payload.filter(
+                        (apikey) =>
+                            apikey.organisationId === checkPolices['value'],
+                    );
+                }
+                return payload;
             }
-            return await this.apiKeyRepo.find({
-                where: { userId: currentUser.userId },
-            });
         } catch (error) {
-            console.error('Error occurred while fetching API keys:', error);
+            if (error instanceof ForbiddenError) {
+                throw new ForbiddenException(error.message);
+            }
             throw new InternalServerErrorException(
                 "Couldn't fetch api keys. Something went wrong!",
             );

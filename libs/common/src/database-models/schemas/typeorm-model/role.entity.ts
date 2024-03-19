@@ -1,4 +1,13 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+    Column,
+    Entity,
+    JoinColumn,
+    ManyToOne,
+    OneToMany,
+    PrimaryGeneratedColumn,
+    Relation,
+} from 'typeorm';
+import type { Organisation } from './organisation.entity';
 import type { RolePermission } from './role-permission.entity';
 import type { User } from './user.entity';
 
@@ -15,8 +24,18 @@ export class Role {
     @Column('boolean', { default: false, name: 'hasFullDataControl' })
     hasFullDataControl: boolean;
 
-    @Column('boolean', { default: false, name: 'disabled' })
-    disabled: boolean;
+    @Column('boolean', { default: false, name: 'isDisabled' })
+    isDisabled: boolean;
+
+    @Column('varchar', { name: 'organisationId', nullable: true })
+    organisationId: string;
+
+    @ManyToOne(
+        'Organisation',
+        (organisation: Organisation) => organisation.roles,
+    )
+    @JoinColumn({ name: 'organisationId', referencedColumnName: 'id' })
+    organisation: Relation<Organisation>;
 
     @OneToMany('User', (user: User) => user.role)
     users: User[];

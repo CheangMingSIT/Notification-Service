@@ -13,11 +13,14 @@ import {
     HttpStatus,
     Param,
     Patch,
+    Post,
     Query,
+    Req,
     UseFilters,
     UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
+import { OrganisationAdminDto } from './dtos/user-admin.dto';
 import { UserListDto } from './dtos/user-list.dto';
 import { UserRoleIdDto } from './dtos/user-role-update.dto';
 import { UserService } from './user.service';
@@ -29,11 +32,10 @@ export class UserController {
 
     @Get('listUsers')
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard, PolicyGuard)
-    @CheckPolicies((ability: AppAbility) => ability.can(Operation.Read, 'User'))
+    @UseGuards(JwtAuthGuard)
     @UseFilters(HttpExceptionFilter)
-    async listUsers(@Query() query: UserListDto) {
-        const response = await this.userService.listUsers(query);
+    async listUsers(@Query() query: UserListDto, @Req() req: any) {
+        const response = await this.userService.listUsers(query, req.user);
         return {
             status: HttpStatus.OK,
             data: response.data.users,
@@ -43,7 +45,7 @@ export class UserController {
     @Get('getUser/:userId')
     @ApiBearerAuth()
     @ApiParam({ name: 'userId', type: String })
-    @UseGuards(JwtAuthGuard, PolicyGuard)
+    @UseGuards(JwtAuthGuard)
     @CheckPolicies((ability: AppAbility) => ability.can(Operation.Read, 'User'))
     @UseFilters(HttpExceptionFilter)
     async getUser(@Param('userId') userId: string) {
@@ -106,13 +108,18 @@ export class UserController {
         };
     }
 
-    @Get('getUserGroups')
+    @Post('AdminOrganisationSetup')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard, PolicyGuard)
+    @CheckPolicies((ability: AppAbility) =>
+        ability.can(Operation.Create, 'User'),
+    )
     @UseFilters(HttpExceptionFilter)
-    async getUserGroups() {
-        const response = await this.userService.getUsersByOrganisation();
+    async AdminOrganisationSetup(@Body() body: OrganisationAdminDto) {
+        const response = await this.userService.addAdminUser(body);
         return {
             status: HttpStatus.OK,
-            data: response,
+            message: response,
         };
     }
 }

@@ -69,7 +69,7 @@ export class NotificationRecordService {
                 condition.push({ scheduleDate: dateCondition });
             }
             if (role.hasFullDataControl === false) {
-                condition.push({ userId: user.userId });
+                condition.push({ 'user.userId': user.userId });
             }
 
             const res = await this.notificationRecord

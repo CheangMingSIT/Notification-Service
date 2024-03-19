@@ -12,6 +12,7 @@ import {
     HttpStatus,
     Patch,
     Post,
+    Req,
     Request,
     UseFilters,
     UseGuards,
@@ -40,9 +41,14 @@ export class UserAuthController {
     }
 
     @Post('signUp')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @UseFilters(HttpExceptionFilter)
-    async signUp(@Body() body: UserDto): Promise<object> {
-        const response = await this.authService.signUp(body);
+    async signUp(@Body() body: UserDto, @Req() req: any): Promise<object> {
+        const response = await this.authService.signUp(
+            body,
+            req.user.organisationId,
+        );
         return {
             status: HttpStatus.ACCEPTED,
             message: response,

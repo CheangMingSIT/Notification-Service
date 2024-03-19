@@ -18,6 +18,7 @@ export class RolepermissionService {
     ) {}
 
     async createRoleWithPermission(
+        organisationId: string,
         role: string,
         hasFullDataControl: boolean,
         permission: number[],
@@ -27,6 +28,7 @@ export class RolepermissionService {
             if (!existingRole) {
                 const newRole = this.roleRepo.create({
                     role,
+                    organisationId,
                     hasFullDataControl,
                 });
                 existingRole = await this.roleRepo.save(newRole);
@@ -56,7 +58,7 @@ export class RolepermissionService {
         }
     }
 
-    async listRolePermission(roleId: number) {
+    async getRolePermission(roleId: number) {
         try {
             const rolePermissionsList = await this.roleRepo.findOne({
                 where: { id: roleId },
@@ -66,54 +68,99 @@ export class RolepermissionService {
                     },
                 },
             });
+            if (!rolePermissionsList) {
+                throw new BadRequestException('Role does not exist');
+            }
             const payload = {
+                id: rolePermissionsList.id,
                 role: rolePermissionsList.role,
+                hasFullDataControl: rolePermissionsList.hasFullDataControl,
                 permissions: rolePermissionsList.rolePermissions.map(
-                    (rolePermission) => {
-                        return {
-                            permissionId: rolePermission.permissionId,
-                            operation: rolePermission.permission.operation,
-                            resource: rolePermission.permission.resource,
-                        };
-                    },
+                    (rolePermission) => rolePermission.permissionId,
                 ),
             };
             return payload;
         } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            console.error(error);
             throw new InternalServerErrorException(
                 'Error fetching role permissions',
             );
         }
     }
 
-    // async updateRoleWithPermission(roleId: number, permissionIds: number[]) {
-    //     try {
-    //         let newRolePermissions = [];
-    //         const existingRole = await this.roleRepo.findOne({
-    //             where: { id: roleId },
-    //             relations: {
-    //                 rolePermissions: true,
-    //             },
-    //         });
-    //         if (!existingRole) {
-    //             throw new BadRequestException('Role does not exist');
-    //         }
-    //         existingRole.rolePermissions.forEach(async (rolePermission) => {
-    //             await this.rolePermissionRepo.delete(rolePermission);
-    //         });
-    //         permissionIds.forEach(async (id) => {
-    //             const rolePermission = this.rolePermissionRepo.create({
-    //                 permissionId: id,
-    //                 roleId: existingRole.id,
-    //             });
-    //             newRolePermissions.push(rolePermission);
-    //         });
-    //         await this.rolePermissionRepo.save(newRolePermissions);
-    //         return "Role's permissions updated successfully";
-    //     } catch (error) {
-    //         throw new InternalServerErrorException(
-    //             'Error updating role with permission',
-    //         );
-    //     }
-    // }
+    async updateRoleWithPermission(
+        roleId: number,
+        role: string,
+        hasFullDataControl: boolean,
+        permissionIds: number[],
+    ) {
+        try {
+            const existingRole = await this.roleRepo.findOne({
+                where: { id: roleId },
+            });
+            if (!existingRole) {
+                throw new BadRequestException('Role does not exist');
+            }
+            await this.rolePermissionRepo.delete({ roleId });
+            const rolePermissions = permissionIds.map((permissionId) => ({
+                roleId,
+                permissionId,
+            }));
+            await this.roleRepo.update(
+                { id: roleId },
+                { role, hasFullDataControl },
+            );
+            await this.rolePermissionRepo.save(rolePermissions);
+            return "Role's permissions updated successfully";
+        } catch (error) {
+            console.error(error);
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new InternalServerErrorException(
+                'Error updating role with permission',
+            );
+        }
+    }
+    async disableRole(roleId: number) {
+        try {
+            const existingRole = await this.roleRepo.findOne({
+                where: { id: roleId },
+            });
+            if (!existingRole) {
+                throw new BadRequestException('Role does not exist');
+            }
+            await this.roleRepo.update({ id: roleId }, { isDisabled: true });
+            await this.rolePermissionRepo.delete({ roleId });
+            return 'Role disabled successfully';
+        } catch (error) {
+            console.error(error);
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new InternalServerErrorException('Error disabling role');
+        }
+    }
+
+    async enableRole(roleId: number) {
+        try {
+            const existingRole = await this.roleRepo.findOne({
+                where: { id: roleId },
+            });
+            if (!existingRole) {
+                throw new BadRequestException('Role does not exist');
+            }
+            await this.roleRepo.update({ id: roleId }, { isDisabled: false });
+            return 'Role enabled successfully';
+        } catch (error) {
+            console.error(error);
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            throw new InternalServerErrorException('Error enabling role');
+        }
+    }
 }

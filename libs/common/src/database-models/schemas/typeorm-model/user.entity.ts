@@ -22,7 +22,7 @@ export class User {
         refreshToken: string,
         role: Role,
         orgainsationId: string,
-        disabled: boolean,
+        isDisabled: boolean,
     ) {
         this.userId = userId;
         this.name = name;
@@ -32,7 +32,7 @@ export class User {
         this.refreshToken = refreshToken;
         this.organisationId = orgainsationId;
         this.role = role;
-        this.disabled = disabled;
+        this.isDisabled = isDisabled;
     }
     static readonly modelName = 'User';
 
@@ -48,7 +48,7 @@ export class User {
     @Column('varchar')
     password: string;
 
-    @Column('int', { default: '2' }) // 1 = admin | 2 = user etc
+    @Column('int', { nullable: true })
     roleId: number;
 
     @Column('varchar', { nullable: true })
@@ -71,6 +71,6 @@ export class User {
     @JoinColumn([{ name: 'roleId', referencedColumnName: 'id' }])
     role: Relation<Role>;
 
-    @Column('boolean', { default: false, name: 'disabled' })
-    disabled: boolean;
+    @Column('boolean', { default: false, name: 'isDisabled' })
+    isDisabled: boolean;
 }

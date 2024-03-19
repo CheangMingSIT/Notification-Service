@@ -1,3 +1,4 @@
+import { JwtAuthGuard } from '@app/auth';
 import { HttpExceptionFilter, NOTIFICATIONSYSTEM } from '@app/common';
 import {
     Body,
@@ -7,9 +8,11 @@ import {
     Param,
     Patch,
     Post,
+    Req,
     UseFilters,
+    UseGuards,
 } from '@nestjs/common';
-import { ApiParam, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
 import { createOrganisationDto } from './dtos/create-organisation.dto';
 import { updateOrganisation } from './dtos/update-organisation.dto';
 import { OrganisationService } from './organisation.service';
@@ -20,9 +23,25 @@ export class OrganisationController {
     constructor(private orgService: OrganisationService) {}
 
     @Get('listOrganisations')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @UseFilters(HttpExceptionFilter)
-    async listOrganisations() {
-        const response = await this.orgService.listOrganisations();
+    async listOrganisations(@Req() req: any) {
+        const response = await this.orgService.listOrganisations(req.user);
+        return {
+            status: HttpStatus.OK,
+            data: response,
+        };
+    }
+
+    @Get('GroupUsersByOrganisation')
+    @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
+    @UseFilters(HttpExceptionFilter)
+    async groupUsersByOrganisation(@Req() req: any) {
+        const response = await this.orgService.groupUserByOrganisation(
+            req.user,
+        );
         return {
             status: HttpStatus.OK,
             data: response,
@@ -30,6 +49,8 @@ export class OrganisationController {
     }
 
     @Post('createOrganisation')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     @UseFilters(HttpExceptionFilter)
     async createOrganisation(@Body() body: createOrganisationDto) {
         const response = await this.orgService.createOrganisation(body);
@@ -39,10 +60,10 @@ export class OrganisationController {
         };
     }
 
-    @Patch('updateOrganisation/:organisationId')
+    @Patch('editCondition/:organisationId')
     @ApiParam({ name: 'organisationId', required: true })
     @UseFilters(HttpExceptionFilter)
-    async updateOrganisation(
+    async addCondition(
         @Param('organisationId') organisationId: string,
         @Body() body: updateOrganisation,
     ) {
@@ -61,6 +82,30 @@ export class OrganisationController {
             organisationId,
             body,
         );
+        return {
+            status: HttpStatus.OK,
+            data: response,
+        };
+    }
+
+    @Patch('disableOrganisation/:organisationId')
+    @ApiParam({ name: 'organisationId', required: true })
+    @UseFilters(HttpExceptionFilter)
+    async disableOrganisation(@Param('organisationId') organisationId: string) {
+        const response =
+            await this.orgService.disableOrganisation(organisationId);
+        return {
+            status: HttpStatus.OK,
+            data: response,
+        };
+    }
+
+    @Patch('enableOrganisation/:organisationId')
+    @ApiParam({ name: 'organisationId', required: true })
+    @UseFilters(HttpExceptionFilter)
+    async enableOrganisation(@Param('organisationId') organisationId: string) {
+        const response =
+            await this.orgService.enableOrganisation(organisationId);
         return {
             status: HttpStatus.OK,
             data: response,

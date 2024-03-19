@@ -69,10 +69,7 @@ export class ApiKeyController {
         @Request() req,
         @Param('secretKeyId') id: string,
     ): Promise<{ status: number; message: string }> {
-        const response = await this.apiKeyService.deleteApiKey(
-            req.user.userId,
-            id,
-        );
+        const response = await this.apiKeyService.deleteApiKey(req.user, id);
         return {
             status: HttpStatus.OK,
             message: response,

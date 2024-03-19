@@ -10,10 +10,12 @@ import {
     Controller,
     Get,
     HttpStatus,
+    Param,
+    Req,
     UseFilters,
     UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiParam, ApiTags } from '@nestjs/swagger';
 import { RoleService } from './role.service';
 
 @Controller({ version: '1', path: NOTIFICATIONSYSTEM })
@@ -26,8 +28,26 @@ export class RoleController {
     @UseGuards(JwtAuthGuard, PolicyGuard)
     @CheckPolicies((ability: AppAbility) => ability.can(Operation.Read, 'Role'))
     @UseFilters(HttpExceptionFilter)
-    async listRoles() {
-        const response = await this.roleService.listRoles();
+    async listRoles(@Req() req: any) {
+        const response = await this.roleService.listRoles(req.user);
+        return {
+            status: HttpStatus.OK,
+            data: response,
+        };
+    }
+
+    @Get('roleListbasedOnOrganisationId/:organisationId')
+    @UseGuards(JwtAuthGuard, PolicyGuard)
+    @ApiParam({ name: 'organisationId', type: String })
+    @CheckPolicies((ability: AppAbility) => ability.can(Operation.Read, 'Role'))
+    @UseFilters(HttpExceptionFilter)
+    async roleListbasedOnOrganisationId(
+        @Param('organisationId') organisationId: string,
+    ) {
+        const response =
+            await this.roleService.roleListbasedOnOrganisationId(
+                organisationId,
+            );
         return {
             status: HttpStatus.OK,
             data: response,

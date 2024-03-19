@@ -1,12 +1,13 @@
-import { CaslAbilityFactory } from '@app/auth';
-import { User } from '@app/common';
+import { CaslAbilityFactory, Operation } from '@app/auth';
+import { Role, RolePermission, User } from '@app/common';
+import { rulesToAST } from '@casl/ability/extra';
 import {
     BadRequestException,
     Injectable,
     InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { groupBy, orderBy } from 'lodash';
+import * as bcrypt from 'bcrypt';
 import { Like, Repository } from 'typeorm';
 import { UserListDto } from './dtos/user-list.dto';
 import { UserRoleIdDto } from './dtos/user-role-update.dto';
@@ -16,46 +17,51 @@ export class UserService {
     constructor(
         @InjectRepository(User, 'postgres') private userRepo: Repository<User>,
         private readonly caslAbilityFactory: CaslAbilityFactory,
+        @InjectRepository(Role, 'postgres') private roleRepo: Repository<Role>,
+        @InjectRepository(RolePermission, 'postgres')
+        private rolePermissionRepo: Repository<RolePermission>,
     ) {}
-    async listUsers(query: UserListDto) {
-        const { page, limit, name, role } = query;
+    async listUsers(query: UserListDto, user: any) {
+        const ability = await this.caslAbilityFactory.defineAbilitiesFor(user);
+        const condition = rulesToAST(ability, Operation.Read, 'User');
+        const { name, role } = query;
         try {
             const users = await this.userRepo.find({
                 relations: ['role'],
                 where: {
                     name: name ? Like(`${name}%`) : undefined,
-                    role: {
-                        role: role ? role : undefined,
-                    },
+                    role: role ? { role } : undefined,
+                    organisationId: condition['field']?.includes(
+                        'organisationId',
+                    )
+                        ? condition['value'].toString()
+                        : undefined,
                 },
-                skip: (page - 1) * limit,
-                take: limit,
             });
-            const payload = users.map((user) => {
-                return {
-                    userId: user.userId,
-                    name: user.name,
-                    email: user.email,
-                    role: user.role.role,
-                    disabled: user.disabled,
-                };
-            });
+
+            const payload = users.map((user) => ({
+                userId: user.userId,
+                name: user.name,
+                email: user.email,
+                role: user.role.role,
+                isDisabled: user.isDisabled,
+            }));
+
             return {
                 data: {
                     users: payload,
-                    page: page,
-                    limit: limit,
                 },
             };
         } catch (error) {
             throw new InternalServerErrorException(error.message);
         }
     }
+
     async getUser(userId: string) {
         try {
             const user = await this.userRepo.findOne({
                 where: { userId },
-                relations: ['role'],
+                relations: ['role', 'organisation'],
             });
             if (!user) {
                 throw new BadRequestException('User does not exist');
@@ -66,6 +72,8 @@ export class UserService {
                 email: user.email,
                 roleId: user.roleId,
                 role: user.role.role,
+                organisationId: user.organisationId,
+                organisationName: user.organisation?.name || 'No Organisation',
             };
         } catch (error) {
             console.error('Error occurred while getting user:', error);
@@ -102,7 +110,7 @@ export class UserService {
                 throw new BadRequestException('User does not exist');
             }
             await this.userRepo.update(existingUser.userId, {
-                disabled: false,
+                isDisabled: false,
             });
         } catch (error) {
             if (error instanceof BadRequestException) {
@@ -123,7 +131,7 @@ export class UserService {
                 throw new BadRequestException('User does not exist');
             }
             await this.userRepo.update(existingUser.userId, {
-                disabled: true,
+                isDisabled: true,
             });
         } catch (error) {
             if (error instanceof BadRequestException) {
@@ -135,48 +143,63 @@ export class UserService {
         }
     }
 
-    async getUsersByOrganisation() {
+    async addAdminUser(user: {
+        name: string;
+        email: string;
+        password: string;
+        organisationId: string;
+    }) {
         try {
-            const users = await this.userRepo
-                .find({
-                    relations: ['organisation', 'role'],
-                })
-                .then((users) => {
-                    return users.map((user) => {
-                        return {
-                            userId: user.userId,
-                            name: user.name,
-                            role: user.role.role,
-                            organisationId: user.organisationId,
-                            organisationName: user.organisation?.name,
-                        };
-                    });
+            const existingUser = await this.userRepo.findOne({
+                where: { email: user.email },
+            });
+
+            if (existingUser) {
+                throw new BadRequestException('User already exists');
+            }
+
+            const adminRole = await this.roleRepo.findOne({
+                where: { role: 'Admin', organisationId: user.organisationId },
+            });
+
+            let roleId: number;
+
+            if (adminRole) {
+                roleId = adminRole.id;
+            } else {
+                const newAdminRole = this.roleRepo.create({
+                    role: 'Admin',
+                    hasFullDataControl: true,
+                    organisationId: user.organisationId,
                 });
-            // Separate the users with undefined organisationName and others
-            const undefinedOrganisationUsers = users.filter(
-                (user) => !user.organisationName,
-            );
-            const definedOrganisationUsers = users.filter(
-                (user) => user.organisationName,
-            );
+                await this.roleRepo.save(newAdminRole);
+                roleId = newAdminRole.id;
+            }
 
-            // Sort the definedOrganisationUsers based on organisationName
-            const sortedUsers = orderBy(definedOrganisationUsers, [
-                (user) => user.organisationName.toLowerCase(),
-            ]);
+            const salt = await bcrypt.genSalt();
+            const hash = await bcrypt.hash(user.password, salt);
 
-            const groupedUsers = [
-                ...sortedUsers,
-                ...undefinedOrganisationUsers,
+            const admin = this.userRepo.create({
+                name: user.name,
+                email: user.email,
+                password: hash,
+                roleId,
+                organisationId: user.organisationId,
+            });
+            const batchSavePromises = [
+                this.userRepo.save(admin),
+                this.rolePermissionRepo.save({
+                    roleId,
+                    permissionId: 1,
+                }),
             ];
-
-            const groupUser = groupBy(
-                groupedUsers,
-                (user) => user.organisationName,
-            );
-            return groupUser;
+            await Promise.all(batchSavePromises);
+            return `Successfully added ${admin.name} as admin user`;
         } catch (error) {
-            console.error('Error occurred while get group users:', error);
+            if (error instanceof BadRequestException) {
+                throw error;
+            }
+            console.error('Error occurred while adding admin user:', error);
             throw new InternalServerErrorException(error.message);
         }
     }

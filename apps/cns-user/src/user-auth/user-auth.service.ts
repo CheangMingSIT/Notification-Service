@@ -32,6 +32,7 @@ export class UserAuthService {
             userId: user.userId,
             email: user.email,
             roleId: user.roleId,
+            organisationId: user.organisationId,
             refreshToken: user.refreshToken,
         };
         try {
@@ -47,8 +48,16 @@ export class UserAuthService {
         }
     }
 
-    async signUp(body: { name: string; email: string; password: string }) {
-        const { name, email, password } = body;
+    async signUp(
+        body: {
+            name: string;
+            email: string;
+            password: string;
+            roleId: number;
+        },
+        organisationId: string,
+    ) {
+        const { name, email, password, roleId } = body;
         try {
             const existingUser = await this.userRepo.findOneBy({ email });
             if (existingUser) {
@@ -59,6 +68,8 @@ export class UserAuthService {
                 name,
                 email,
                 password: hash,
+                roleId,
+                organisationId,
             });
             await this.userRepo.save(newUser);
             return 'User created successfully';
@@ -85,9 +96,10 @@ export class UserAuthService {
         userId: string;
         email: string;
         roleId: string;
+        organisationId: string;
         refreshToken: string;
     }): Promise<string> {
-        const { userId, email, roleId, refreshToken } = user;
+        const { userId, email, roleId, refreshToken, organisationId } = user;
         try {
             const payload = await this.userRepo.findOne({
                 where: { userId },
@@ -107,6 +119,7 @@ export class UserAuthService {
                 userId,
                 email,
                 roleId,
+                organisationId,
             });
             const hashedToken = await this.hashPassword(token);
             await this.userRepo.update(userId, {
@@ -117,7 +130,7 @@ export class UserAuthService {
             if (error instanceof ForbiddenException) {
                 throw error;
             } else {
-                console.log('Error occurred while refreshing token:', error);
+                console.error('Error occurred while refreshing token:', error);
             }
         }
     }

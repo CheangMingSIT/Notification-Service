@@ -14,4 +14,5 @@ export enum Resource {
     Role = 'Role',
     Permission = 'Permission',
     RolePermission = 'RolePermission',
+    Organisation = 'Organisation',
 }
