@@ -13,6 +13,7 @@ import {
     Get,
     HttpStatus,
     Param,
+    Patch,
     Post,
     Query,
     Request,
@@ -48,8 +49,11 @@ export class ApiKeyController {
     }
 
     @Get('apiKeyRecords')
-    @UseGuards(JwtAuthGuard)
+    @UseGuards(JwtAuthGuard, PolicyGuard)
     @UseFilters(HttpExceptionFilter)
+    @CheckPolicies((ability: AppAbility) =>
+        ability.can(Operation.Read, 'ApiKey'),
+    )
     async listApiKeys(
         @Request() req,
         @Query() query: SearchTokenDto,
@@ -70,6 +74,42 @@ export class ApiKeyController {
         @Param('secretKeyId') id: string,
     ): Promise<{ status: number; message: string }> {
         const response = await this.apiKeyService.deleteApiKey(req.user, id);
+        return {
+            status: HttpStatus.OK,
+            message: response,
+        };
+    }
+
+    @Patch('disableApiKey/:secretKeyId')
+    @UseGuards(JwtAuthGuard, PolicyGuard)
+    @ApiParam({ name: 'secretKeyId', required: true, type: 'string' })
+    @UseFilters(HttpExceptionFilter)
+    @CheckPolicies((ability: AppAbility) =>
+        ability.can(Operation.Update, 'ApiKey'),
+    )
+    async disableApiKey(
+        @Request() req,
+        @Param('secretKeyId') id: string,
+    ): Promise<{ status: number; message: string }> {
+        const response = await this.apiKeyService.disableApiKey(req.user, id);
+        return {
+            status: HttpStatus.OK,
+            message: response,
+        };
+    }
+
+    @Patch('enableApiKey/:secretKeyId')
+    @UseGuards(JwtAuthGuard, PolicyGuard)
+    @ApiParam({ name: 'secretKeyId', required: true, type: 'string' })
+    @UseFilters(HttpExceptionFilter)
+    @CheckPolicies((ability: AppAbility) =>
+        ability.can(Operation.Update, 'ApiKey'),
+    )
+    async enableApiKey(
+        @Request() req,
+        @Param('secretKeyId') id: string,
+    ): Promise<{ status: number; message: string }> {
+        const response = await this.apiKeyService.enableApiKey(req.user, id);
         return {
             status: HttpStatus.OK,
             message: response,

@@ -31,14 +31,15 @@ export class UserController {
     constructor(private userService: UserService) {}
 
     @Get('listUsers')
+    @UseGuards(JwtAuthGuard, PolicyGuard)
     @ApiBearerAuth()
-    @UseGuards(JwtAuthGuard)
     @UseFilters(HttpExceptionFilter)
+    @CheckPolicies((ability: AppAbility) => ability.can(Operation.Read, 'User'))
     async listUsers(@Query() query: UserListDto, @Req() req: any) {
         const response = await this.userService.listUsers(query, req.user);
         return {
             status: HttpStatus.OK,
-            data: response.data.users,
+            data: response,
         };
     }
 

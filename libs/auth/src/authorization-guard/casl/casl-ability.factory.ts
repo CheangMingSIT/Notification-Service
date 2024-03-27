@@ -35,29 +35,30 @@ export type AppAbility = MongoAbility<[Operation, Resource]>;
 export class CaslAbilityFactory {
     constructor(private readonly caslAbilityService: CaslAbilityService) {}
     async defineAbilitiesFor(user: any) {
-        const { can, build } = new AbilityBuilder<AppAbility>(
+        const { can, cannot, build } = new AbilityBuilder<AppAbility>(
             createMongoAbility,
         );
         let response: any;
-        let condition: any;
         try {
-            response = await this.caslAbilityService.identifyAbility(
-                user.roleId,
-            );
-            condition = await this.caslAbilityService.identitfyConditions(
-                user.userId,
-            );
-            response.forEach((element) => {
-                can(
-                    element.permission.operation,
-                    element.permission.resource,
-                    condition.condition,
-                    // {
-                    //     'user.organisationId':
-                    //         '920779e0-7d28-4bef-a50c-2ded75ef26f7',
-                    // },
+            if (user.role === 'Owner') {
+                can(Operation.Manage, 'all');
+                cannot(Operation.Read, 'User');
+                cannot(Operation.Read, 'Role');
+            } else {
+                response = await this.caslAbilityService.identifyAbility(
+                    user.roleId,
                 );
-            });
+                response.forEach((element) => {
+                    can(
+                        element.permission.operation,
+                        element.permission.resource,
+                        {
+                            'user.organisationId': user.organisationId,
+                        },
+                    );
+                    cannot(Operation.Read, 'Organisation');
+                });
+            }
         } catch (e) {
             console.error(e);
             throw new InternalServerErrorException('Casl Ability Error');

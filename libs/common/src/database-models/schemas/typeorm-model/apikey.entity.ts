@@ -25,6 +25,9 @@ export class ApiKey {
     @Column('varchar')
     secretKey: string;
 
+    @Column('boolean', { name: 'isDisabled', default: false })
+    isDisabled: boolean;
+
     @Column('uuid', { name: 'userId', nullable: true })
     userId: string;
 

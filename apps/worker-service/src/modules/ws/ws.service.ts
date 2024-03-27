@@ -5,7 +5,11 @@ import {
     RabbitmqService,
 } from '@app/common';
 import { MailerService } from '@nestjs-modules/mailer';
-import { Injectable, OnApplicationBootstrap } from '@nestjs/common';
+import {
+    Injectable,
+    InternalServerErrorException,
+    OnApplicationBootstrap,
+} from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import * as fs from 'fs';
 import Handlebars from 'handlebars';
@@ -134,6 +138,9 @@ export class WsService implements OnApplicationBootstrap {
         } catch (error) {
             this.updateStatus(emailPayload._id, 'FAIL');
             console.error('Error processing email message:', error);
+            throw new InternalServerErrorException(
+                'Error processing email message',
+            );
         }
     }
 
@@ -165,6 +172,9 @@ export class WsService implements OnApplicationBootstrap {
         } catch (error) {
             await this.updateStatus(smsPayload._id, 'FAIL');
             console.error('Error processing SMS message:', error);
+            throw new InternalServerErrorException(
+                'Error processing SMS message',
+            );
         }
     }
 }

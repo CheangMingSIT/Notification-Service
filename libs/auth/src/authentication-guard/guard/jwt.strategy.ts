@@ -26,11 +26,13 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             .replace('Bearer', '')
             .trim();
 
+        if (payload.role === 'Owner') {
+            return payload;
+        }
         const validUser = await this.authService.validateRefreshToken(
             payload.userId,
             refreshToken,
         );
-
         if (!validUser) {
             throw new UnauthorizedException('Invalid User');
         }

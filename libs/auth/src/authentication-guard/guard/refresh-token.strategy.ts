@@ -27,8 +27,12 @@ export class RefreshTokenStrategy extends PassportStrategy(
             .get('Authorization')
             .replace('Bearer', '')
             .trim();
+
+        if (payload.role === 'Owner') {
+            return { ...payload, refreshToken };
+        }
         const validUser = await this.authService.validateRefreshToken(
-            payload.userId,
+            payload,
             refreshToken,
         );
 

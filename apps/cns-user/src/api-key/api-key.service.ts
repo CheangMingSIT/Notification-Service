@@ -1,12 +1,12 @@
-import { CaslAbilityFactory, Operation } from '@app/auth';
+import { CaslAbilityFactory } from '@app/auth';
 import { ApiKey, User } from '@app/common';
 import { ForbiddenError } from '@casl/ability';
-import { rulesToAST } from '@casl/ability/extra';
 import {
     BadRequestException,
     ForbiddenException,
     Injectable,
     InternalServerErrorException,
+    NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomBytes } from 'crypto';
@@ -79,56 +79,136 @@ export class ApiKeyService {
             }
         }
     }
-    async listApiKeys(currentUser: any, query: SearchTokenDto) {
+    async listApiKeys(
+        currentUser: any,
+        query: SearchTokenDto,
+    ): Promise<Object> {
         try {
-            const ability =
-                await this.caslAbilityFactory.defineAbilitiesFor(currentUser);
-            ForbiddenError.from(ability)
-                .setMessage('Cannot Read ApiKey')
-                .throwUnlessCan(Operation.Read, ApiKey);
-            const checkPolices = rulesToAST(ability, Operation.Read, 'ApiKey');
             const user = await this.userRepo.findOne({
                 where: { userId: currentUser.userId },
                 relations: ['role'],
             });
-            if (user.role.hasFullDataControl === true) {
-                const result = await this.apiKeyRepo.find({
-                    relations: ['user'],
-                    where: user.role.hasFullDataControl
-                        ? {
-                              name: query.name
-                                  ? Like(`${query.name}%`)
-                                  : undefined,
-                          }
-                        : {
-                              userId: currentUser.userId,
-                              name: query.name
-                                  ? Like(`${query.name}%`)
-                                  : undefined,
+            const result = await this.apiKeyRepo.find({
+                select: {
+                    id: true,
+                    name: true,
+                    secretKey: true,
+                    isDisabled: true,
+                    userId: true,
+                    user: {
+                        organisationId: true,
+                    },
+                },
+                relations: ['user'],
+                where: user.role.hasFullDataControl
+                    ? {
+                          name: query.name ? Like(`${query.name}%`) : undefined,
+                          user: {
+                              organisationId: user.organisationId,
                           },
-                });
-                const payload = result.map((apiKey) => ({
-                    id: apiKey.id,
-                    name: apiKey.name,
-                    secretKey: apiKey.secretKey,
-                    userId: apiKey.userId,
-                    organisationId: apiKey.user.organisationId,
-                }));
-                if (checkPolices['field'] === 'user.organisationId') {
-                    return payload.filter(
-                        (apikey) =>
-                            apikey.organisationId === checkPolices['value'],
-                    );
-                }
-                return payload;
-            }
+                      }
+                    : {
+                          userId: user.userId,
+                          name: query.name ? Like(`${query.name}%`) : undefined,
+                          user: {
+                              organisationId: user.organisationId,
+                          },
+                      },
+            });
+            return result.map((item) => {
+                return {
+                    id: item.id,
+                    name: item.name,
+                    secretKey: item.secretKey,
+                    userId: item.userId,
+                    isDisabled: item.isDisabled,
+                    organisationId: item.user.organisationId,
+                };
+            });
         } catch (error) {
             if (error instanceof ForbiddenError) {
                 throw new ForbiddenException(error.message);
             }
+            console.error('Error occurred while fetching API keys:', error);
             throw new InternalServerErrorException(
                 "Couldn't fetch api keys. Something went wrong!",
             );
+        }
+    }
+    async disableApiKey(
+        currentUser: any,
+        secretKeyId: string,
+    ): Promise<string> {
+        try {
+            const user = await this.userRepo.findOne({
+                where: {
+                    userId: currentUser.userId,
+                    organisationId: currentUser.organisationId,
+                },
+                relations: ['role'],
+            });
+            if (!user) {
+                throw new NotFoundException('User not found');
+            }
+
+            const existingApiKey = await this.apiKeyRepo.findOne({
+                where: {
+                    id: secretKeyId,
+                },
+            });
+            if (existingApiKey) {
+                existingApiKey.isDisabled = true;
+                await this.apiKeyRepo.save(existingApiKey);
+                return 'API Key disabled successfully';
+            } else {
+                throw new BadRequestException('Invalid secret key');
+            }
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            } else {
+                console.error('Error occurred while disabling API key:', error);
+                throw new InternalServerErrorException(
+                    'Couldn’t disable api key. Something went wrong!',
+                );
+            }
+        }
+    }
+
+    async enableApiKey(currentUser: any, secretKeyId: string): Promise<string> {
+        try {
+            const user = await this.userRepo.findOne({
+                where: {
+                    userId: currentUser.userId,
+                    organisationId: currentUser.organisationId,
+                },
+                relations: ['role'],
+            });
+            if (!user) {
+                throw new NotFoundException('User not found');
+            }
+
+            const existingApiKey = await this.apiKeyRepo.findOne({
+                where: {
+                    id: secretKeyId,
+                },
+            });
+            if (existingApiKey) {
+                existingApiKey.isDisabled = false;
+                await this.apiKeyRepo.save(existingApiKey);
+                return 'API Key enabled successfully';
+            } else {
+                throw new BadRequestException('Invalid secret key');
+            }
+        } catch (error) {
+            if (error instanceof BadRequestException) {
+                throw error;
+            } else {
+                console.error('Error occurred while enabling API key:', error);
+                throw new InternalServerErrorException(
+                    'Couldn’t enable api key. Something went wrong!',
+                );
+            }
         }
     }
 }

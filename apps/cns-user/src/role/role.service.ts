@@ -1,10 +1,9 @@
-import { CaslAbilityFactory, Operation } from '@app/auth';
+import { CaslAbilityFactory } from '@app/auth';
 import { Role } from '@app/common';
-import { rulesToAST } from '@casl/ability/extra';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { orderBy } from 'lodash';
 import { Repository } from 'typeorm';
-
 @Injectable()
 export class RoleService {
     constructor(
@@ -14,16 +13,25 @@ export class RoleService {
 
     async listRoles(user: any) {
         try {
-            const ability =
-                await this.caslAbilityFactory.defineAbilitiesFor(user);
-            const checkPolices = rulesToAST(ability, Operation.Read, 'Role');
-            if (checkPolices['field'] === 'user.organisationId') {
-                const roles = await this.roleRepo.find({
-                    where: { organisationId: checkPolices['value'].toString() },
-                });
-                return roles;
-            }
-            const roles = await this.roleRepo.find();
+            let roles = await this.roleRepo.find({
+                select: {
+                    id: true,
+                    role: true,
+                    hasFullDataControl: true,
+                    isDisabled: true,
+                    organisation: {
+                        id: true,
+                        name: true,
+                    },
+                },
+                relations: ['organisation'],
+                where: { organisationId: user.organisationId },
+            });
+            roles = orderBy(
+                roles,
+                ['organisation.name', 'role'],
+                ['asc', 'asc'],
+            );
             return roles;
         } catch (error) {
             throw new InternalServerErrorException(error.message);
@@ -36,6 +44,18 @@ export class RoleService {
                 where: { organisationId },
             });
             return roles;
+        } catch (error) {
+            console.error(error);
+            throw new InternalServerErrorException(error.message);
+        }
+    }
+
+    async getRole(roleId: number) {
+        try {
+            const { role } = await this.roleRepo.findOne({
+                where: { id: roleId },
+            });
+            return role;
         } catch (error) {
             console.error(error);
             throw new InternalServerErrorException(error.message);

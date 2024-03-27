@@ -7,6 +7,7 @@ import {
     PrimaryGeneratedColumn,
     Relation,
 } from 'typeorm';
+
 import type { Organisation } from './organisation.entity';
 import type { RolePermission } from './role-permission.entity';
 import type { User } from './user.entity';

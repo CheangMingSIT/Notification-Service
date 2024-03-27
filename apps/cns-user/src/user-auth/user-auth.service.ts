@@ -28,6 +28,15 @@ export class UserAuthService {
     }
 
     async signIn(user: any): Promise<Object> {
+        if (user?.user === 'Owner') {
+            const payload = {
+                user: 'Owner',
+                role: 'Owner',
+                organisation: 'IT Biz',
+            };
+            const access_token = await this.jwtService.signAsync(payload);
+            return access_token;
+        }
         const payload = {
             userId: user.userId,
             email: user.email,
@@ -92,29 +101,19 @@ export class UserAuthService {
         }
     }
 
-    async refreshToken(user: {
-        userId: string;
-        email: string;
-        roleId: string;
-        organisationId: string;
-        refreshToken: string;
-    }): Promise<string> {
-        const { userId, email, roleId, refreshToken, organisationId } = user;
+    async refreshToken(user: any): Promise<string> {
         try {
-            const payload = await this.userRepo.findOne({
-                where: { userId },
-                relations: ['role'],
-            });
-            if (!payload || !payload.role) {
-                throw new ForbiddenException('Access Denied');
+            if (user.role === 'Owner') {
+                const payload = {
+                    user: user.user,
+                    role: user.role,
+                    organisation: user.organisation,
+                };
+                const token = await this.jwtService.signAsync(payload);
+                return token;
             }
-            const isMatch = await bcrypt.compare(
-                refreshToken,
-                payload.refreshToken,
-            );
-            if (!isMatch) {
-                throw new ForbiddenException('Access Denied');
-            }
+
+            const { userId, email, roleId, organisationId } = user;
             const token = await this.jwtService.signAsync({
                 userId,
                 email,
@@ -129,9 +128,9 @@ export class UserAuthService {
         } catch (error) {
             if (error instanceof ForbiddenException) {
                 throw error;
-            } else {
-                console.error('Error occurred while refreshing token:', error);
             }
+            console.error('Error occurred while refreshing token:', error);
+            throw new InternalServerErrorException(error.message);
         }
     }
 

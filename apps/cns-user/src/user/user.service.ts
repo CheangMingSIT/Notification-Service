@@ -1,8 +1,9 @@
-import { CaslAbilityFactory, Operation } from '@app/auth';
+import { CaslAbilityFactory } from '@app/auth';
 import { Role, RolePermission, User } from '@app/common';
-import { rulesToAST } from '@casl/ability/extra';
+import { ForbiddenError } from '@casl/ability';
 import {
     BadRequestException,
+    ForbiddenException,
     Injectable,
     InternalServerErrorException,
 } from '@nestjs/common';
@@ -22,37 +23,27 @@ export class UserService {
         private rolePermissionRepo: Repository<RolePermission>,
     ) {}
     async listUsers(query: UserListDto, user: any) {
-        const ability = await this.caslAbilityFactory.defineAbilitiesFor(user);
-        const condition = rulesToAST(ability, Operation.Read, 'User');
         const { name, role } = query;
         try {
-            const users = await this.userRepo.find({
+            const payload = await this.userRepo.find({
                 relations: ['role'],
                 where: {
                     name: name ? Like(`${name}%`) : undefined,
                     role: role ? { role } : undefined,
-                    organisationId: condition['field']?.includes(
-                        'organisationId',
-                    )
-                        ? condition['value'].toString()
-                        : undefined,
+                    organisationId: user.organisationId,
                 },
             });
-
-            const payload = users.map((user) => ({
+            return payload.map((user) => ({
                 userId: user.userId,
                 name: user.name,
                 email: user.email,
                 role: user.role.role,
                 isDisabled: user.isDisabled,
             }));
-
-            return {
-                data: {
-                    users: payload,
-                },
-            };
         } catch (error) {
+            if (error instanceof ForbiddenError) {
+                throw new ForbiddenException(error.message);
+            }
             throw new InternalServerErrorException(error.message);
         }
     }
@@ -83,7 +74,9 @@ export class UserService {
 
     async updateUser(userId: string, userRole: UserRoleIdDto) {
         try {
-            const existingUser = await this.userRepo.findOneBy({ userId });
+            const existingUser = await this.userRepo.findOne({
+                where: { userId },
+            });
             if (!existingUser) {
                 throw new BadRequestException('User does not exist');
             }
@@ -153,17 +146,14 @@ export class UserService {
             const existingUser = await this.userRepo.findOne({
                 where: { email: user.email },
             });
-
             if (existingUser) {
                 throw new BadRequestException('User already exists');
             }
-
             const adminRole = await this.roleRepo.findOne({
                 where: { role: 'Admin', organisationId: user.organisationId },
             });
 
             let roleId: number;
-
             if (adminRole) {
                 roleId = adminRole.id;
             } else {

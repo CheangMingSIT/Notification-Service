@@ -1,3 +1,4 @@
+import { Status } from '@app/common/constants';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
@@ -19,7 +20,7 @@ export class NotificationLog extends Document {
         super();
         this._id = _id;
         this.channel = channel;
-        this.status = status;
+        this.status = status as Status;
         this.subject = subject;
         this.message = message;
         this.sender = sender;
@@ -39,7 +40,7 @@ export class NotificationLog extends Document {
     @Prop()
     channel: string;
 
-    @Prop()
+    @Prop({ enum: Status })
     status: string;
 
     @Prop()
