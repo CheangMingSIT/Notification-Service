@@ -2,18 +2,17 @@ import { CaslAbilityModule } from '@app/auth';
 import { ApiKey, Role, RolePermission, User } from '@app/common';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import * as fs from 'fs';
-import { join } from 'path';
 import { UserAuthController } from './user-auth.controller';
 import { UserAuthService } from './user-auth.service';
-
-const reqPath = join(__dirname, '../');
-const privateKey = fs.readFileSync(reqPath + 'keys/private.pem', 'utf8');
-const publicKey = fs.readFileSync(reqPath + 'keys/public.pem', 'utf8');
+const publicKey = fs.readFileSync(process.env.PUBLIC_KEY_FILE, 'utf8');
+const privateKey = fs.readFileSync(process.env.PRIVATE_KEY_FILE, 'utf8');
 @Module({
     imports: [
+        ConfigModule.forRoot(),
         TypeOrmModule.forFeature(
             [User, Role, RolePermission, ApiKey],
             'postgres',

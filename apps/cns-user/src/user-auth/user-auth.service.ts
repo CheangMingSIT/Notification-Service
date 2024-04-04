@@ -10,8 +10,8 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import * as fs from 'fs';
 import { Repository } from 'typeorm';
-
 @Injectable()
 export class UserAuthService {
     constructor(
@@ -145,8 +145,10 @@ export class UserAuthService {
                 email: user.email,
                 roleId: user.roleId,
             };
+            const JWT_SECRET_FILE = this.configService.get('JWT_SECRET_FILE');
+            const JWT_SECRET = fs.readFileSync(JWT_SECRET_FILE, 'utf8');
             const token = await this.jwtService.signAsync(payload, {
-                secret: this.configService.get('JWT_SECRET'),
+                secret: JWT_SECRET,
                 algorithm: 'HS256',
                 expiresIn: '1m',
             });
@@ -169,11 +171,7 @@ export class UserAuthService {
             if (error instanceof BadRequestException) {
                 throw error;
             } else {
-                console.error(
-                    'Error occurred while sending reset password link:',
-                    error,
-                );
-                throw new BadRequestException(error.message);
+                throw new InternalServerErrorException(error.message);
             }
         }
     }
@@ -205,11 +203,7 @@ export class UserAuthService {
             if (error instanceof BadRequestException) {
                 throw error;
             } else {
-                console.error(
-                    'Error occurred while resetting password:',
-                    error,
-                );
-                throw new BadRequestException(error.message);
+                throw new InternalServerErrorException(error.message);
             }
         }
     }

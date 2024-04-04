@@ -1,6 +1,7 @@
 import { Permission } from '@app/common';
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { groupBy } from 'lodash';
 import { Repository } from 'typeorm';
 import { PermissionDto } from './dtos/permssion.dto';
 
@@ -27,6 +28,33 @@ export class PermissionService {
         }
     }
 
+    async groupPermissionsByResource(): Promise<any> {
+        try {
+            const permissions = await this.permissionRepo.find({
+                order: { resource: 'ASC' },
+                select: ['permissionId', 'operation', 'resource'],
+            });
+
+            const groupedPermissions = groupBy(permissions, 'resource');
+
+            const resources = Object.entries(groupedPermissions)
+                .map(([resource, permissions]) => {
+                    if (resource === 'all') {
+                        return null;
+                    }
+
+                    return {
+                        resource,
+                        permissions,
+                    };
+                })
+                .filter(Boolean);
+
+            return resources;
+        } catch (error) {
+            throw new BadRequestException(error.message);
+        }
+    }
     async createPermission(body: PermissionDto) {
         const { operation, resource } = body;
         try {

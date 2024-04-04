@@ -6,10 +6,8 @@ COPY package*.json ./
 
 RUN npm install --legacy-peer-deps
 
-COPY ../../dist/apps/dlx-notification-api ./dist
+COPY ../../dist/apps/cns-user ./dist
 
 RUN npm install pm2 -g
-
-EXPOSE 3000
 
 CMD [ "pm2-runtime", "dist/main.js"]

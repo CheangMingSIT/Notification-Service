@@ -77,7 +77,15 @@ export class NotificationRecordService {
                 .limit(query.limit)
                 .exec();
 
-            return res.map((record) => ({
+            const count = await this.notificationRecord
+                .where(
+                    conditions.length > 0
+                        ? { $and: conditions }
+                        : { _id: null },
+                )
+                .countDocuments();
+
+            const payload = res.map((record) => ({
                 id: record._id,
                 userId: record.user.userId,
                 secretKey: record.secretKey,
@@ -89,6 +97,10 @@ export class NotificationRecordService {
                 status: record.status,
                 scheduleDate: record.scheduleDate,
             }));
+            return {
+                totalCount: count,
+                payload,
+            };
         } catch (error) {
             throw error instanceof ForbiddenError
                 ? new ForbiddenException(error.message)
@@ -235,7 +247,6 @@ export class NotificationRecordService {
                 count: record.count,
             }));
         } catch (error) {
-            console.log(error);
             throw error instanceof ForbiddenError
                 ? new ForbiddenException(error.message)
                 : new InternalServerErrorException(

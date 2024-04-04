@@ -23,7 +23,7 @@ export default class postgresConfig {
             username: configService.get('POSTGRES_USER'),
             password: configService.get('POSTGRES_PASSWORD'),
             database: configService.get('POSTGRES_DB'),
-            url: configService.get('POSTGRES_URI'),
+            // url: configService.get('POSTGRES_URL'),
             entities: [
                 User,
                 Organisation,

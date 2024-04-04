@@ -32,11 +32,11 @@ export class RabbitmqService implements OnModuleInit {
         });
 
         this.connection.on('disconnect', (err) => {
-            console.error(err);
+            console.error('disconnection: ' + err);
         });
 
         this.connection.on('connectFailed', (err) => {
-            console.error(err);
+            console.error('connection failed: ' + err);
         });
 
         this.channel = this.connection.createChannel({

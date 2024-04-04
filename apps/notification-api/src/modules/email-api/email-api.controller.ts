@@ -29,7 +29,7 @@ export class EmailApiController {
         @Body()
         body: {
             from: string;
-            to: [string];
+            to: string[];
             cc?: string[];
             bcc?: string[];
             subject: string;
@@ -38,6 +38,7 @@ export class EmailApiController {
         @UploadedFiles()
         files: Array<Express.Multer.File>,
     ): Promise<{ status: HttpStatus; message: string }> {
+        body.to === undefined ? [''] : body.to;
         const response = await this.emailApiService.publishEmail(
             body,
             files,

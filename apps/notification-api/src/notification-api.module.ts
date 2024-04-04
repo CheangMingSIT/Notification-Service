@@ -1,4 +1,4 @@
-import { UserValidationModule, ValidateKeyModule } from '@app/auth';
+import { ValidateKeyModule } from '@app/auth';
 import { MongoDBModule, PostgresDBModule } from '@app/common';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
@@ -14,7 +14,6 @@ import { SmsApiModule } from './modules/sms-api/sms-api.module';
         PostgresDBModule,
         EmailApiModule,
         SmsApiModule,
-        UserValidationModule,
         ValidateKeyModule,
     ],
 })

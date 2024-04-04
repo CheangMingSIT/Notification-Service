@@ -33,7 +33,7 @@ export class NotificationRecordController {
     @UseGuards(ApiAuthGuard, PolicyGuard)
     @UseFilters(HttpExceptionFilter)
     @CheckPolicies((ability: any) =>
-        ability.can(Operation.Read, 'NotificationRecord'),
+        ability.can(Operation.Read, 'NotificationLog'),
     )
     async notificationRecords(
         @Request() req: any,
@@ -70,7 +70,7 @@ export class NotificationRecordController {
     @UseGuards(JwtAuthGuard, PolicyGuard)
     @UseFilters(HttpExceptionFilter)
     @CheckPolicies((ability: any) =>
-        ability.can(Operation.Read, 'NotificationRecord'),
+        ability.can(Operation.Read, 'NotificationLog'),
     )
     async todayMessageInQueue(@Request() req: any) {
         const res = await this.notificationRecord.countTodayMessageInQueue(
@@ -87,7 +87,7 @@ export class NotificationRecordController {
     @UseGuards(JwtAuthGuard, PolicyGuard)
     @UseFilters(HttpExceptionFilter)
     @CheckPolicies((ability: any) =>
-        ability.can(Operation.Read, 'NotificationRecord'),
+        ability.can(Operation.Read, 'NotificationLog'),
     )
     async todayFailedMessage(@Request() req: any) {
         const res = await this.notificationRecord.countFailedMessage(req.user);
@@ -119,7 +119,7 @@ export class NotificationRecordController {
     @UseGuards(JwtAuthGuard, PolicyGuard)
     @UseFilters(HttpExceptionFilter)
     @CheckPolicies((ability: any) =>
-        ability.can(Operation.Read, 'NotificationRecord'),
+        ability.can(Operation.Read, 'NotificationLog'),
     )
     async monthlyUndeliveredMessage(@Request() req: any) {
         const res = await this.notificationRecord.countTotalUndeliveredMessage(

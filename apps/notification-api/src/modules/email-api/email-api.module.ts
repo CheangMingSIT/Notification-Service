@@ -10,12 +10,16 @@ import { EmailApiController } from './email-api.controller';
 import { EmailApiService } from './email-api.service';
 
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MulterModule } from '@nestjs/platform-express';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
     imports: [
+        ConfigModule.forRoot({
+            isGlobal: true,
+        }),
         RabbitMqModule,
         MulterModule.register({
             limits: {

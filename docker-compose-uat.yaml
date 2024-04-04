@@ -1,0 +1,113 @@
+version: '3.8'
+
+services:
+    notification-api:
+        image: api
+        container_name: notification-api
+        ports:
+            - 3000:3000
+        environment:
+            - MONGODB_URI=mongodb://10.251.2.108:27017/CNS
+            - RABBITMQ_URI=amqp://rabbitmq:5672
+            - POSTGRES_HOST=10.251.2.109
+            - POSTGRES_PORT=5432
+            - POSTGRES_USER=ncp_schema
+            - POSTGRES_PASSWORD=ncp_P&ddw*rd123
+            - POSTGRES_DB=cns
+        networks:
+            - cm-network
+    worker-service:
+        image: ws
+        container_name: worker-service
+        ports:
+            - 3010:3010
+        environment:
+            - MONGODB_URI=mongodb://10.251.2.108:27017/CNS
+            - RABBITMQ_URI=amqp://rabbitmq:5672
+            - POSTGRES_HOST=10.251.2.109
+            - POSTGRES_PORT=5432
+            - POSTGRES_USER=ncp_schema
+            - POSTGRES_PASSWORD=ncp_P&ddw*rd123
+            - POSTGRES_DB=cns
+        networks:
+            - cm-network
+    dlx-notification-api:
+        image: dlx-notification-api
+        container_name: dlx-notification-api
+        ports:
+            - 3050:3050
+        environment:
+            - MONGODB_URI=mongodb://10.251.2.108:27017/CNS
+            - RABBITMQ_URI=amqp://rabbitmq:5672
+            - POSTGRES_HOST=10.251.2.109
+            - POSTGRES_PORT=5432
+            - POSTGRES_USER=ncp_schema
+            - POSTGRES_PASSWORD=ncp_P&ddw*rd123
+            - POSTGRES_DB=cns
+        networks:
+            - cm-network
+    cns-user:
+        image: cns-user
+        container_name: cns-user
+        ports:
+            - 3070:3070
+        environment:
+            - MONGODB_URI=mongodb://mongo:27017/notificationService
+            - POSTGRES_HOST=postgres
+            - POSTGRES_PORT=5432
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_DB=postgres
+            - PUBLIC_KEY_FILE=/run/secrets/publicKey
+            - PRIVATE_KEY_FILE=/run/secrets/privateKey
+            - JWT_SECRET_FILE=/run/secrets/secretKey
+        secrets:
+            - publicKey
+            - privateKey
+            - secretKey
+        networks:
+            - test-network
+        depends_on:
+            - mongo
+            - postgres
+    cns-notification-record:
+        image: cns-notification-record
+        container_name: cns-notification-record
+        ports:
+            - 3060:3060
+        environment:
+            - MONGODB_URI=mongodb://mongo:27017/notificationService
+            - POSTGRES_HOST=postgres
+            - POSTGRES_PORT=5432
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_DB=postgres
+            - PUBLIC_KEY_FILE=/run/secrets/publicKey
+            - PRIVATE_KEY_FILE=/run/secrets/privateKey
+            - JWT_SECRET_FILE=/run/secrets/secretKey
+        secrets:
+            - publicKey
+            - privateKey
+            - secretKey
+        networks:
+            - test-network
+        depends_on:
+            - mongo
+            - postgres
+    rabbitmq:
+        image: rabbitmq:3.12-management
+        container_name: rabbitmq
+        ports:
+            - 15672:15672
+            - 5672:5672
+        networks:
+            - cm-network
+secrets:
+    publicKey:
+        file: ./secrets/public.pem
+    privateKey:
+        file: ./secrets/private.pem
+    secretKey:
+        file: ./secrets/jwt.txt
+networks:
+    cm-network:

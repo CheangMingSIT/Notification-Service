@@ -1,6 +1,6 @@
 import { Operation, Resource } from '@app/auth';
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsArray, IsEnum, IsOptional } from 'class-validator';
+import { IsEnum, IsOptional } from 'class-validator';
 
 export class PermissionDto {
     @ApiPropertyOptional({ enum: Operation })
@@ -8,7 +8,6 @@ export class PermissionDto {
         message:
             'Operation must be either manage, create, read, update or delete',
     })
-    @IsArray()
     @IsOptional()
     operation: Operation;
 

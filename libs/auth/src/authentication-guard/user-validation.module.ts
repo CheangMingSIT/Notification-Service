@@ -1,5 +1,6 @@
 import { PostgresDBModule, User } from '@app/common';
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { JwtStrategy } from './guard/jwt.strategy';
@@ -10,6 +11,7 @@ import { UserValidationService } from './user-validation.service';
 
 @Module({
     imports: [
+        ConfigModule.forRoot({ isGlobal: true }),
         PostgresDBModule,
         TypeOrmModule.forFeature([User], 'postgres'),
         PassportModule,

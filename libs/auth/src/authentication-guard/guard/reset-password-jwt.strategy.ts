@@ -1,22 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
+import * as fs from 'fs';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UserValidationService } from '../user-validation.service';
-
 @Injectable()
 export class ResetPasswordStrategy extends PassportStrategy(
     Strategy,
     'reset-password-jwt',
 ) {
     constructor(
-        private configService: ConfigService,
+        configService: ConfigService,
         private authService: UserValidationService,
     ) {
+        const JWT_SECRET_FILE = configService.get<string>('JWT_SECRET_FILE');
+        const JWT_SECRET = fs.readFileSync(JWT_SECRET_FILE, 'utf8');
         super({
             jwtFromRequest: ExtractJwt.fromUrlQueryParameter('token'),
             ignoreExpiration: false,
-            secretOrKey: configService.get('JWT_SECRET'),
+            secretOrKey: JWT_SECRET,
         });
     }
 

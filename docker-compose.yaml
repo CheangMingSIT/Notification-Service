@@ -1,43 +1,120 @@
 version: '3.8'
 
 services:
-    notification-api:
-        image: api
-        container_name: notification-api
+    # notification-api:
+    #     image: api
+    #     container_name: notification-api
+    #     ports:
+    #         - 3000:3000
+    #     environment:
+    #         MONGODB_URI: mongodb://mongo:27017/notificationService
+    #         RABBITMQ_URI: amqp://rabbitmq:5672
+    #         POSTGRES_HOST: postgres
+    #         POSTGRES_PORT: 5432
+    #         POSTGRES_USER: postgres
+    #         POSTGRES_PASSWORD: postgres
+    #         POSTGRES_DB: postgres
+    #     networks:
+    #         - test-network
+    #     depends_on:
+    #         - rabbitmq
+    #         - mongo
+    #         - postgres
+    # worker-service:
+    #     image: ws
+    #     container_name: worker-service
+    #     ports:
+    #         - 3010:3010
+    #     environment:
+    #         MONGODB_URI: mongodb://mongo:27017/notificationService
+    #         RABBITMQ_URI: amqp://rabbitmq:5672
+    #         POSTGRES_HOST: postgres
+    #         POSTGRES_PORT: 5432
+    #         POSTGRES_USER: postgres
+    #         POSTGRES_PASSWORD: postgres
+    #         POSTGRES_DB: postgres
+    #     networks:
+    #         - test-network
+    #     depends_on:
+    #         - rabbitmq
+    #         - mongo
+    #         - postgres
+    # dlx-notification-api:
+    #     image: dlx-notification-api
+    #     container_name: dlx-notification-api
+    #     ports:
+    #         - 3050:3050
+    #     environment:
+    #         MONGODB_URI: mongodb://mongo:27017/notificationService
+    #         RABBITMQ_URI: amqp://rabbitmq:5672
+    #         POSTGRES_HOST: postgres
+    #         POSTGRES_PORT: 5432
+    #         POSTGRES_USER: postgres
+    #         POSTGRES_PASSWORD: postgres
+    #         POSTGRES_DB: postgres
+    #     networks:
+    #         - test-network
+    #     depends_on:
+    #         - rabbitmq
+    #         - mongo
+    #         - postgres
+    cns-user:
+        image: cns-user
+        container_name: cns-user
         ports:
-            - 3000:3000
+            - 3070:3070
         environment:
             - MONGODB_URI=mongodb://mongo:27017/notificationService
-            - RABBITMQ_URI=amqp://rabbitmq:5672
+            - POSTGRES_HOST=postgres
+            - POSTGRES_PORT=5432
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_DB=postgres
+            - PUBLIC_KEY_FILE=/run/secrets/publicKey
+            - PRIVATE_KEY_FILE=/run/secrets/privateKey
+            - RESET_PASSWORD_URL=http://localhost:5173/reset-password
+            - JWT_SECRET_FILE=/run/secrets/secretKey
+        secrets:
+            - publicKey
+            - privateKey
+            - secretKey
         networks:
-            - cm-network
-    worker-service:
-        image: ws
-        container_name: worker-service
+            - test-network
+        depends_on:
+            - mongo
+            - postgres
+    cns-notification-record:
+        image: cns-notification-record
+        container_name: cns-notification-record
         ports:
-            - 3010:3010
+            - 3060:3060
+        secrets:
+            - publicKey
+            - privateKey
+            - secretKey
         environment:
             - MONGODB_URI=mongodb://mongo:27017/notificationService
-            - RABBITMQ_URI=amqp://rabbitmq:5672
+            - POSTGRES_HOST=postgres
+            - POSTGRES_PORT=5432
+            - POSTGRES_USER=postgres
+            - POSTGRES_PASSWORD=postgres
+            - POSTGRES_DB=postgres
+            - PUBLIC_KEY_FILE=/run/secrets/publicKey
+            - PRIVATE_KEY_FILE=/run/secrets/privateKey
+            - RESET_PASSWORD_URL=http://localhost:5173/reset-password
+            - JWT_SECRET_FILE=/run/secrets/secretKey
         networks:
-            - cm-network
-    dlx-notification-api:
-        image: dlx-notification-api
-        container_name: dlx-notification-api
-        ports:
-            - 3050:3050
-        environment:
-            - MONGODB_URI=mongodb://mongo:27017/notificationService
-            - RABBITMQ_URI=amqp://rabbitmq:5672
-        networks:
-            - cm-network
+            - test-network
+        depends_on:
+            - mongo
+            - postgres
     mongo:
         image: mongodb/mongodb-community-server:latest
         container_name: mongodb
         ports:
             - 27017:27017
         networks:
-            - cm-network
+            - test-network
         volumes:
             - /Users/cheangmingcheo/SPTEL/databases/mongodb:/data/db
     rabbitmq:
@@ -47,23 +124,30 @@ services:
             - 15672:15672
             - 5672:5672
         networks:
-            - cm-network
+            - test-network
     postgres:
         image: postgres:alpine3.19
         container_name: postgres
         ports:
             - 5432:5432
         environment:
-            - POSTGRES_USER=postgres
-            - POSTGRES_PASSWORD=postgres
-            - POSTGRES_DB=postgres
-        networks:
-            - cm-network
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: postgres
         volumes:
             - /Users/cheangmingcheo/SPTEL/databases/postgres:/data/db
-
+        networks:
+            - test-network
+secrets:
+    publicKey:
+        file: ./secrets/public.pem
+    privateKey:
+        file: ./secrets/private.pem
+    secretKey:
+        file: ./secrets/jwt.txt
 networks:
-    cm-network:
+    test-network:
+        driver: bridge
 volumes:
     mongodb:
     postgres:

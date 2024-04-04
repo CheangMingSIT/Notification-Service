@@ -11,10 +11,7 @@ declare const module: any;
 
 async function bootstrap() {
     const app = await NestFactory.create(CnsNotificationRecordModule);
-    app.enableCors({
-        origin: 'http://localhost:5173',
-        methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-    });
+    app.enableCors();
     app.useGlobalPipes(
         new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }),
     );
@@ -39,7 +36,7 @@ async function bootstrap() {
 
     const document = SwaggerModule.createDocument(app, config, options);
     SwaggerModule.setup('cns-notification-record', app, document);
-    await app.listen(3050);
+    await app.listen(3060);
 
     if (module.hot) {
         module.hot.accept();

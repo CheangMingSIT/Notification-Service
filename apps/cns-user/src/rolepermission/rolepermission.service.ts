@@ -1,7 +1,6 @@
 import { Role, RolePermission } from '@app/common';
 import {
     BadRequestException,
-    HttpStatus,
     Injectable,
     InternalServerErrorException,
 } from '@nestjs/common';
@@ -42,10 +41,7 @@ export class RolepermissionService {
                 });
                 await this.rolePermissionRepo.save(rolePermission);
             });
-            return {
-                status: HttpStatus.ACCEPTED,
-                message: 'Role created with permission',
-            };
+            return 'Role created successfully with permission';
         } catch (error) {
             console.error(error);
             if (error instanceof BadRequestException) {
@@ -74,7 +70,6 @@ export class RolepermissionService {
             const payload = {
                 id: rolePermissionsList.id,
                 role: rolePermissionsList.role,
-                hasFullDataControl: rolePermissionsList.hasFullDataControl,
                 permissions: rolePermissionsList.rolePermissions.map(
                     (rolePermission) => rolePermission.permissionId,
                 ),

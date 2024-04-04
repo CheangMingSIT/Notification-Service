@@ -106,7 +106,7 @@ export class EmailApiService {
             mergeRecipients = [
                 ...(body.cc || []),
                 ...(body.bcc || []),
-                ...body.to,
+                ...(body.to || []),
             ];
 
             const log: EmailLog = {

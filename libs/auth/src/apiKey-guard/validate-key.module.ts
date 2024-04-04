@@ -11,7 +11,7 @@ import { ValidateKeyService } from './validate-key.service';
         ConfigModule.forRoot({
             isGlobal: true,
         }),
-        PassportModule,
+        PassportModule.register({ defaultStrategy: 'headerapikey' }),
         PostgresDBModule,
         TypeOrmModule.forFeature([ApiKey], 'postgres'),
     ],
