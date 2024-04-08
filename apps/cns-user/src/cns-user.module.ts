@@ -2,7 +2,7 @@ import { UserValidationModule } from '@app/auth';
 import { MongoDBModule, PostgresDBModule } from '@app/common';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { ApiAuthModule } from './api-key/api-key.module';
+import { ApiKeyModule } from './api-key/api-key.module';
 import { OrganisationModule } from './organisation/organisation.module';
 import { PermissionModule } from './permission/permission.module';
 import { RoleModule } from './role/role.module';
@@ -23,7 +23,7 @@ import { UserModule } from './user/user.module';
         PermissionModule,
         RolepermissionModule,
         UserValidationModule,
-        ApiAuthModule,
+        ApiKeyModule,
         OrganisationModule,
     ],
 })

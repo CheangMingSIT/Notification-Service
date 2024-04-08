@@ -27,7 +27,7 @@ import { SearchTokenDto } from './dtos/search-token.dto';
 
 @Controller({ version: '1', path: NOTIFICATIONSYSTEM })
 @ApiBearerAuth()
-@ApiTags('Api Auth')
+@ApiTags('Api Key')
 export class ApiKeyController {
     constructor(private apiKeyService: ApiKeyService) {}
 

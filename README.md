@@ -17,7 +17,7 @@
 -   [RabbitMQ](#rabbit-rabbitmq)
 -   [Environment File](#maple_leaf-env-variables)
 -   [License](#license)
--   [Author](#authors)
+-   [Authors](#authors)
 
 ## Introduction
 
