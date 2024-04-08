@@ -1,18 +1,18 @@
 ## Table of Contents
 
 -   [Introduction](#introduction)
--   [Technologies](#technologies)
+-   [Technologies](#computer-technologies)
 -   [Installation](#installation)
--   [Running the Application](#running-the-app)
+-   [Running the Application](#running-the-app-rocket)
 -   [Modules](#modules)
     -   [Microservices](#microservices)
     -   [Library](#library)
 -   [Entities](#entities)
--   [Guards](#guards)
+-   [Guards](#guardsman-guards)
     -   [Authentication](#authentication)
     -   [ApiKey Guard](#apikey-guard)
     -   [Authorization](#authorization)
--   [RabbitMQ](#rabbitmq)
+-   [RabbitMQ](#rabbit-rabbitmq)
 -   [Environment File](#maple_leaf-env-variables)
 -   [License](#license)
 -   [Author](#authors)
@@ -21,13 +21,13 @@
 
 The primary purpose of this project is to develop a common notification service (CNS) as well as a notification API service that meets the specific business and technical requirements of SPTel.
 
-## Technologies
+## :computer: Technologies
 
 #### Project is created with:
 
 -   NodeJS Version: 20.10.0
 -   Pnpm Version: 8.12.1
--   RabbitMQ Version: 3.12-management (Running from Docker Image)
+-   RabbitMQ Version: 3.12-management (Docker Image)
 -   MongoDB
 -   Postgres
 -   NestJS Version: 10.3.1
@@ -38,7 +38,7 @@ The primary purpose of this project is to develop a common notification service 
 $ pnpm install
 ```
 
-## Running the app
+## Running the app :rocket:
 
 ```bash
 # watch mode
@@ -57,17 +57,19 @@ $ pnpm run start:cns
 
 ### Common Notification Service
 
-#### CNS-User Modules
+![alt CNS](/assets/images/CNS.png)
 
--   ApiAuth
--   Organisation
--   Permission
--   Role
--   RolePermission
--   User
--   UserAuth
+#### CNS-User Modules ([Link to the Swagger](http://localhost:3070/cns-user))
 
-#### CNS-Notification-Record Module
+-   [ApiAuth](/apps/cns-user/src/api-key/api-key.module.ts)
+-   [Organisation](/apps/cns-user/src/organisation/organisation.module.ts)
+-   [Permission](/apps/cns-user/src/permission/permission.module.ts)
+-   [Role](/apps/cns-user/src/role/role.module.ts)
+-   [RolePermission](/apps/cns-user/src/rolepermission/rolepermission.module.ts)
+-   [User](/apps/cns-user/src/user/user.module.ts)
+-   [UserAuth](/apps/cns-user/src/user-auth/user-auth.module.ts)
+
+#### CNS-Notification-Record Module ([Link to the Swagger](http://localhost:3060/cns-auth#/))
 
 -   Notification-Record
 
@@ -75,20 +77,44 @@ $ pnpm run start:cns
 
 #### Overall Architecture of the Notification Service
 
-![alt text](/assets/images/NotificationService.jpg)
+![alt NotificationService](/assets/images/NotificationService.jpg)
+
+-   CNS architecture mainly comprise of the Notification API service, Message Queues and Workers.
 
 #### Dead-Letter-Exchange Notification API Module
 
--   dlx-notification-api
+> Responsible for consuming message that are stuck in the queue or unconsume from the worker service
+
+-   [dlx-notification-api](/apps/dlx-notification-api/src/dlx-notification-api.module.ts)
 
 #### Notification API Modules
 
--   Email API
--   SMS API
+-   [Email API](/apps/notification-api/src/modules/email-api/email-api.module.ts)
+-   [SMS API](/apps/notification-api/src/modules/sms-api/sms-api.module.ts)
+
+##### How to use the Notification API
+
+-   Firstly, go to my cns-user swagger to generate the API-Key --> [localhost:3070](http://localhost:3070/cns-user)
+
+-   In Postman, set up the secret key and post to `http://localhost:3000/v1/api/notification-api/email` (Email) or `http://localhost:3000/v1/api/notification-api/SMS` (SMS)
+
+    ![NotificationAPI](/assets/images/notificationAPI.png)
+
+-   Secondly, set up your message body to be like this
+
+    -   Email:
+
+        ![Email Body](/assets/images/emailBody.png)
+
+    -   SMS:
+
+        ![SMS Body](/assets/images/SMSBody.png)
 
 #### Worker Service Module
 
--   ws
+> Responsible for consuming messages from the message queues and process the notifications
+
+-   [WS](/apps/worker-service/src/worker-service.module.ts)
 
 ### Library
 
@@ -111,20 +137,17 @@ $ pnpm run start:cns
 
 ### Postgres
 
-<img src="/assets/images/entities.png" alt="Entities Image" width="400" height="300"/>
+<img src="/assets/images/entities.png" alt="Entities Image" width="650" height="auto"/>
 
 ### MongoDB
 
-<img src="/assets/images/mongodb.png" alt="Mongodb Image" width="400" height="300"/>
+<img src="/assets/images/mongodb.png" alt="Mongodb Image" width="650" height="auto"/>
 
-## Guards
+## :guardsman: Guards
 
 ### Authentication
 
-#### Local Strategy
-
-`File:  
-libs/auth/src/authentication-guard/guard/local.strategy.ts`
+#### [Local Strategy](/libs/auth/src/authentication-guard/guard/local.strategy.ts)
 
 -   The purpose of the local strategy is to verify and authenticate the credentials of a user during the sign-in process.
 
@@ -136,10 +159,7 @@ libs/auth/src/authentication-guard/guard/local.strategy.ts`
     async signIn(@Request() req: any) {}
     ```
 
-#### Jwt Strategy
-
-`File: 
-libs/auth/src/authentication-guard/guard/jwt.strategy.ts`
+#### [Jwt Strategy](libs/auth/src/authentication-guard/guard/jwt.strategy.ts)
 
 -   The Jwt Strategy is implemented to validate the authentication of users accessing an API, ensuring that only authenticated users are authorized to make API calls.
 
@@ -151,10 +171,7 @@ libs/auth/src/authentication-guard/guard/jwt.strategy.ts`
     async listRoles() {}
     ```
 
-#### Refresh-Token Strategy
-
-`File: 
-libs/auth/src/authentication-guard/guard/refresh-token.strategy.ts`
+#### [Refresh-Token Strategy](libs/auth/src/authentication-guard/guard/refresh-token.strategy.ts)
 
 -   The Refresh Token strategy is designed to handle the renewal of authentication tokens for users, allowing them to obtain new access tokens without requiring them to re-enter their credentials.
 
@@ -166,10 +183,7 @@ libs/auth/src/authentication-guard/guard/refresh-token.strategy.ts`
     async refreshToken() {}
     ```
 
-#### Reset Password Strategy
-
-`File: 
-libs/auth/src/authentication-guard/guard/reset-password-jwt.strategy.ts`
+#### [Reset Password Strategy](libs/auth/src/authentication-guard/guard/reset-password-jwt.strategy.ts)
 
 -   The Reset Password Strategy is to facilitate the process of resetting a user's password when they have forgotten it or need to change it.
 
@@ -183,10 +197,7 @@ libs/auth/src/authentication-guard/guard/reset-password-jwt.strategy.ts`
 
 ### ApiKey Guard
 
-#### Api-Auth
-
-`File: 
-/Users/cheangmingcheo/IWSP/notification-services/libs/auth/src/apiKey-guard/guard/api-auth.strategy.ts`
+#### [Api-Auth](libs/auth/src/apiKey-guard/guard/api-auth.strategy.ts)
 
 -   The purpose of the ApiKey Strategy is to authenticate whether a user has the authorization to send emails.
 
@@ -204,9 +215,7 @@ libs/auth/src/authentication-guard/guard/reset-password-jwt.strategy.ts`
 
 -   The purpose of CASL is to provide user-centric access control for application. CASL enable developers to define permissions and role for the application. [To know more about CASL ](https://casl.js.org/v6/en)
 
-##### Casl-ability.factory.ts
-
-`File: libs/auth/src/authorization-guard/casl/casl-ability.factory.ts`
+##### [Casl-ability.factory.ts](libs/auth/src/authorization-guard/casl/casl-ability.factory.ts)
 
 -   The purpose is to create the `Ability` Object for that given user
 -   Method:
@@ -214,9 +223,7 @@ libs/auth/src/authentication-guard/guard/reset-password-jwt.strategy.ts`
     async defineAbilitiesFor(user: any)
     ```
 
-##### Policy-guard
-
-`File: libs/auth/src/authorization-guard/guard/policy.guard.ts`
+##### [Policy-guard](libs/auth/src/authorization-guard/guard/policy.guard.ts)
 
 -   The purpose is to obtains the user information from the incoming request, and creates an ability object using the caslAbilityFactory. It then proceeds to validate each policy handler against the user's abilities.
 -   The PoliciesGuard **acts as a middleware that enforces policies by checking if the user has the required abilities** to access a particular route or resource.
@@ -236,9 +243,7 @@ libs/auth/src/authentication-guard/guard/reset-password-jwt.strategy.ts`
         async groupUsersByOrganisation() {}
         ```
 
-## RabbitMQ
-
-`File: libs/common/src/rabbit-mq`
+## :rabbit: [RabbitMQ](libs/common/src/rabbit-mq/rabbit-mq.module.ts)
 
 > RabbitMQ serves as a message broker, facilitating the exchange of messages between different components, systems, or services within an application or across multiple applications. [To know more about RabbitMQ.](https://www.rabbitmq.com/tutorials)
 
@@ -251,7 +256,7 @@ onModuleInit() {
 ```
 
 -   By setting up the connection, you will be able to access the rabbitMQ: [localhost:15672](http://localhost:15672/)
-    ![rabbitmqlogin](/assets/images/rabbitmqlogin.png)
+    <img src="/assets/images/rabbitmqlogin.png" alt="Login Image" width="650" height="auto"/>
 
 1. Username: guest
 2. Password: guest
@@ -333,9 +338,9 @@ public async subscribe(queue: string, onMessage: (msg) => void) {
 }
 ```
 
-## :maple_leaf: Env variables
+## :fallen_leaf: Env variables
 
-Environment files are avaliable in the [env directory](.env)
+Environment files are avaliable in [here](.env)
 
 ## License
 
@@ -344,3 +349,5 @@ This project is licensed under the CM License
 ## Authors
 
 The one and only CM :muscle:
+
+![swag](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbjI4dGtneWNyejB1MThodnhzbDZrZzM1Y2R2YmdvYWY4ZzVpMmxsZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/hTa5z1RfAvqAEHVF8t/giphy.gif)
