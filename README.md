@@ -1,3 +1,5 @@
+# CM CNS :email::iphone:
+
 ## Table of Contents
 
 -   [Introduction](#introduction)
@@ -59,7 +61,7 @@ $ pnpm run start:cns
 
 ![alt CNS](/assets/images/CNS.png)
 
-#### CNS-User Modules ([Link to the Swagger](http://localhost:3070/cns-user))
+#### CNS-User Modules ([Link to the Swagger locally and UAT](http://localhost:3070/cns-user))
 
 -   [ApiAuth](/apps/cns-user/src/api-key/api-key.module.ts)
 -   [Organisation](/apps/cns-user/src/organisation/organisation.module.ts)
@@ -69,7 +71,7 @@ $ pnpm run start:cns
 -   [User](/apps/cns-user/src/user/user.module.ts)
 -   [UserAuth](/apps/cns-user/src/user-auth/user-auth.module.ts)
 
-#### CNS-Notification-Record Module ([Link to the Swagger](http://localhost:3060/cns-auth#/))
+#### CNS-Notification-Record Module ([Link to the Swagger locally and UAT](http://localhost:3060/cns-auth#/))
 
 -   Notification-Record
 
