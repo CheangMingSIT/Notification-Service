@@ -27,17 +27,21 @@ export class UserValidationService {
                 };
             }
             const user = await this.findUser(email);
+            if (!user) {
+                throw new UnauthorizedException('Invalid Credentials!');
+            }
             if (user.isDisabled === true) {
                 throw new ForbiddenException('Disabled Users!');
             }
             if (user && (await bcrypt.compare(pass, user.password))) {
                 const { password, ...payload } = user;
                 return payload;
+            } else {
+                throw new UnauthorizedException('Invalid Credentials!');
             }
         } catch (error) {
-            if (error instanceof UnauthorizedException) {
-                throw error;
-            }
+            if (error instanceof ForbiddenException) throw error;
+            if (error instanceof UnauthorizedException) throw error;
             throw new InternalServerErrorException('Something went wrong');
         }
     }

@@ -1,63 +1,63 @@
 version: '3.8'
 
 services:
-    # notification-api:
-    #     image: api
-    #     container_name: notification-api
-    #     ports:
-    #         - 3000:3000
-    #     environment:
-    #         MONGODB_URI: mongodb://mongo:27017/notificationService
-    #         RABBITMQ_URI: amqp://rabbitmq:5672
-    #         POSTGRES_HOST: postgres
-    #         POSTGRES_PORT: 5432
-    #         POSTGRES_USER: postgres
-    #         POSTGRES_PASSWORD: postgres
-    #         POSTGRES_DB: postgres
-    #     networks:
-    #         - test-network
-    #     depends_on:
-    #         - rabbitmq
-    #         - mongo
-    #         - postgres
-    # worker-service:
-    #     image: ws
-    #     container_name: worker-service
-    #     ports:
-    #         - 3010:3010
-    #     environment:
-    #         MONGODB_URI: mongodb://mongo:27017/notificationService
-    #         RABBITMQ_URI: amqp://rabbitmq:5672
-    #         POSTGRES_HOST: postgres
-    #         POSTGRES_PORT: 5432
-    #         POSTGRES_USER: postgres
-    #         POSTGRES_PASSWORD: postgres
-    #         POSTGRES_DB: postgres
-    #     networks:
-    #         - test-network
-    #     depends_on:
-    #         - rabbitmq
-    #         - mongo
-    #         - postgres
-    # dlx-notification-api:
-    #     image: dlx-notification-api
-    #     container_name: dlx-notification-api
-    #     ports:
-    #         - 3050:3050
-    #     environment:
-    #         MONGODB_URI: mongodb://mongo:27017/notificationService
-    #         RABBITMQ_URI: amqp://rabbitmq:5672
-    #         POSTGRES_HOST: postgres
-    #         POSTGRES_PORT: 5432
-    #         POSTGRES_USER: postgres
-    #         POSTGRES_PASSWORD: postgres
-    #         POSTGRES_DB: postgres
-    #     networks:
-    #         - test-network
-    #     depends_on:
-    #         - rabbitmq
-    #         - mongo
-    #         - postgres
+    notification-api:
+        image: api
+        container_name: notification-api
+        ports:
+            - 3000:3000
+        environment:
+            MONGODB_URI: mongodb://mongo:27017/notificationService
+            RABBITMQ_URI: amqp://rabbitmq:5672
+            POSTGRES_HOST: postgres
+            POSTGRES_PORT: 5432
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: postgres
+        networks:
+            - test-network
+        depends_on:
+            - rabbitmq
+            - mongo
+            - postgres
+    worker-service:
+        image: ws
+        container_name: worker-service
+        ports:
+            - 3010:3010
+        environment:
+            MONGODB_URI: mongodb://mongo:27017/notificationService
+            RABBITMQ_URI: amqp://rabbitmq:5672
+            POSTGRES_HOST: postgres
+            POSTGRES_PORT: 5432
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: postgres
+        networks:
+            - test-network
+        depends_on:
+            - rabbitmq
+            - mongo
+            - postgres
+    dlx-notification-api:
+        image: dlx-notification-api
+        container_name: dlx-notification-api
+        ports:
+            - 3050:3050
+        environment:
+            MONGODB_URI: mongodb://mongo:27017/notificationService
+            RABBITMQ_URI: amqp://rabbitmq:5672
+            POSTGRES_HOST: postgres
+            POSTGRES_PORT: 5432
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: postgres
+            POSTGRES_DB: postgres
+        networks:
+            - test-network
+        depends_on:
+            - rabbitmq
+            - mongo
+            - postgres
     cns-user:
         image: cns-user
         container_name: cns-user
