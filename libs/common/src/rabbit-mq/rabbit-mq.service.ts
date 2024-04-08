@@ -83,6 +83,7 @@ export class RabbitmqService implements OnModuleInit {
             RK_NOTIFICATION_EMAIL,
         );
 
+        // Dead Letter Exchange & Queues
         await channel.assertExchange(DLX_EXCHANGE, 'direct', {
             durable: true,
         });
@@ -92,6 +93,7 @@ export class RabbitmqService implements OnModuleInit {
         await channel.bindQueue(DLQ_EMAIL, DLX_EXCHANGE, RK_NOTIFICATION_EMAIL);
     }
 
+    // Publish message to RabbitMQ
     public async publish(routingkey: string, message: any) {
         this.channel.waitForConnect();
         try {
@@ -107,6 +109,7 @@ export class RabbitmqService implements OnModuleInit {
         }
     }
 
+    // Subscribe to RabbitMQ
     public async subscribe(queue: string, onMessage: (msg) => void) {
         this.channel.waitForConnect();
         await this.channel.addSetup((channel: any) => {

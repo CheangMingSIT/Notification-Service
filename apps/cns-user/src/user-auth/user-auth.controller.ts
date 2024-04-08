@@ -66,9 +66,9 @@ export class UserAuthController {
         };
     }
 
-    @UseGuards(RefreshTokenGuard)
     @ApiBearerAuth()
     @Get('refreshToken')
+    @UseGuards(RefreshTokenGuard)
     async refreshToken(@Request() req: any) {
         const token = await this.authService.refreshToken(req.user);
         return {

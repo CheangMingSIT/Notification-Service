@@ -10,9 +10,15 @@ import type { User } from './user.entity';
 
 @Entity('ApiKey', { schema: 'User', database: 'User' })
 export class ApiKey {
-    constructor(name: string, secretKey: string, userId: string) {
+    constructor(
+        name: string,
+        secretKey: string,
+        isDisabled: boolean,
+        userId: string,
+    ) {
         this.name = name;
         this.secretKey = secretKey;
+        this.isDisabled = isDisabled;
         this.userId = userId;
     }
     static readonly modelName = 'ApiKey';
