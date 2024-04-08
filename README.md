@@ -1,4 +1,4 @@
-# CM CNS :email::iphone:
+# CM CNS :email: :iphone:
 
 ## Table of Contents
 
