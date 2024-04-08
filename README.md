@@ -63,6 +63,8 @@ $ pnpm run start:cns
 
 #### CNS-User Modules ([Link to the Swagger locally and UAT](http://localhost:3070/cns-user))
 
+File Directory:
+
 -   [ApiAuth](/apps/cns-user/src/api-key/api-key.module.ts)
 -   [Organisation](/apps/cns-user/src/organisation/organisation.module.ts)
 -   [Permission](/apps/cns-user/src/permission/permission.module.ts)
@@ -71,9 +73,11 @@ $ pnpm run start:cns
 -   [User](/apps/cns-user/src/user/user.module.ts)
 -   [UserAuth](/apps/cns-user/src/user-auth/user-auth.module.ts)
 
-#### CNS-Notification-Record Module ([Link to the Swagger locally and UAT](http://localhost:3060/cns-auth#/))
+#### CNS-Notification-Record Module ([Link to the Swagger locally and UAT](http://localhost:3060/cns-notification-record))
 
--   Notification-Record
+File Directory:
+
+-   [Notification-Record](/apps/cns-notification-record/src/cns-notification-record.module.ts)
 
 ### Notification Service
 
@@ -87,9 +91,13 @@ $ pnpm run start:cns
 
 > Responsible for consuming message that are stuck in the queue or unconsume from the worker service
 
+File Directory:
+
 -   [dlx-notification-api](/apps/dlx-notification-api/src/dlx-notification-api.module.ts)
 
 #### Notification API Modules
+
+File Directory:
 
 -   [Email API](/apps/notification-api/src/modules/email-api/email-api.module.ts)
 -   [SMS API](/apps/notification-api/src/modules/sms-api/sms-api.module.ts)
@@ -116,22 +124,24 @@ $ pnpm run start:cns
 
 > Responsible for consuming messages from the message queues and process the notifications
 
+File Directory:
+
 -   [WS](/apps/worker-service/src/worker-service.module.ts)
 
 ### Library
 
--   [Gurads](#guards)
-    -   [ApiKey](#apikey-guard)
-    -   [Authentication](#authentication)
-    -   [Authorisation](#authorization)
--   Common
+-   [Gurads](/libs/auth/src/)
+    -   ApiKey
+    -   Authentication
+    -   Authorisation
+-   [Common](/libs/common/src/)
     -   Constant
     -   Entity
     -   DTOs
     -   Exception-Filter
     -   Interceptors
-    -   [RabbitMQ](#rabbitmq)
--   Config
+    -   RabbitMQ
+-   [Config](/libs/config/src/)
     -   Mongoose Configuration
     -   Postgres Configuration
 
