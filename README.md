@@ -1,4 +1,4 @@
-# CM CNS :email: :iphone:
+# CNS :email: :iphone:
 
 ## Table of Contents
 
@@ -15,7 +15,7 @@
     -   [ApiKey Guard](#apikey-guard)
     -   [Authorization](#authorization)
 -   [RabbitMQ](#rabbit-rabbitmq)
--   [Environment File](#maple_leaf-env-variables)
+-   [Environment File](#fallen_leaf-env-variables)
 -   [License](#license)
 -   [Authors](#authors)
 
@@ -25,7 +25,7 @@ The primary purpose of this project is to develop a common notification service 
 
 ## :computer: Technologies
 
-#### Project is created with:
+#### Project is built with:
 
 -   NodeJS Version: 20.10.0
 -   Pnpm Version: 8.12.1
@@ -65,25 +65,25 @@ $ pnpm run start:cns
 
 File Directory:
 
--   [ApiAuth](/apps/cns-user/src/api-key/api-key.module.ts)
--   [Organisation](/apps/cns-user/src/organisation/organisation.module.ts)
--   [Permission](/apps/cns-user/src/permission/permission.module.ts)
+-   [ApiAuth](/apps/cns-user/src/api-key)
+-   [Organisation](/apps/cns-user/src/organisation)
+-   [Permission](/apps/cns-user/src/permission)
 -   [Role](/apps/cns-user/src/role/role.module.ts)
--   [RolePermission](/apps/cns-user/src/rolepermission/rolepermission.module.ts)
--   [User](/apps/cns-user/src/user/user.module.ts)
--   [UserAuth](/apps/cns-user/src/user-auth/user-auth.module.ts)
+-   [RolePermission](/apps/cns-user/src/rolepermission)
+-   [User](/apps/cns-user/src/user)
+-   [UserAuth](/apps/cns-user/src/user-auth)
 
 #### CNS-Notification-Record Module ([Link to the Swagger locally and UAT](http://localhost:3060/cns-notification-record))
 
 File Directory:
 
--   [Notification-Record](/apps/cns-notification-record/src/cns-notification-record.module.ts)
+-   [Notification-Record](/apps/cns-notification-record/src)
 
 ### Notification Service
 
 #### Overall Architecture of the Notification Service
 
-![alt NotificationService](/assets/images/NotificationService.jpg)
+![alt NotificationService](/assets/images/NotificationService.png)
 
 -   CNS architecture mainly comprise of the Notification API service, Message Queues and Workers.
 
@@ -93,14 +93,14 @@ File Directory:
 
 File Directory:
 
--   [dlx-notification-api](/apps/dlx-notification-api/src/dlx-notification-api.module.ts)
+-   [dlx-notification-api](/apps/dlx-notification-api/src)
 
 #### Notification API Modules
 
 File Directory:
 
--   [Email API](/apps/notification-api/src/modules/email-api/email-api.module.ts)
--   [SMS API](/apps/notification-api/src/modules/sms-api/sms-api.module.ts)
+-   [Email API](/apps/notification-api/src/modules/email-api)
+-   [SMS API](/apps/notification-api/src/modules/sms-api)
 
 ##### How to use the Notification API
 
@@ -259,6 +259,10 @@ File Directory:
 
 > RabbitMQ serves as a message broker, facilitating the exchange of messages between different components, systems, or services within an application or across multiple applications. [To know more about RabbitMQ.](https://www.rabbitmq.com/tutorials)
 
+The library I use:
+
+-   https://amqp-node.github.io/amqplib/
+
 ### Setting up the connection
 
 ```Typescript
@@ -356,10 +360,10 @@ Environment files are avaliable in [here](.env)
 
 ## License
 
-This project is licensed under the CM License
+This project is licensed under the MIT License.
 
 ## Authors
 
-The one and only CM :muscle:
+The one and only legendary CM :muscle:
 
 ![swag](https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExbjI4dGtneWNyejB1MThodnhzbDZrZzM1Y2R2YmdvYWY4ZzVpMmxsZiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/hTa5z1RfAvqAEHVF8t/giphy.gif)

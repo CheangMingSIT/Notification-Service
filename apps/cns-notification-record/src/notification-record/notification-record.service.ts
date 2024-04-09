@@ -124,6 +124,7 @@ export class NotificationRecordService {
                     ? (matchQuery['user.userId'] = userId)
                     : (matchQuery['user.organisationId'] = organisationId);
             }
+
             const query = await this.notificationRecord
                 .where(matchQuery)
                 .getQuery();
