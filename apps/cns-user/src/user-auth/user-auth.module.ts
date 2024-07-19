@@ -32,12 +32,12 @@ const privateKey = fs.readFileSync(process.env.PRIVATE_KEY_FILE, 'utf8');
                 port: 587,
                 secure: false,
                 auth: {
-                    user: 'symphony-boss-dev@sptel.com',
-                    pass: 'hbS31o&s2bGp@z8I',
+                    user: 'cheangming@hotmail.com',
+                    pass: 'leotiger1998',
                 },
             },
             defaults: {
-                from: '"No Reply" <noreply@sptel.com>',
+                from: 'Hello1998@outlook.sg',
             },
         }),
     ],

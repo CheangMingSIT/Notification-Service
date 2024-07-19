@@ -55,7 +55,7 @@ export class NotificationRecordController {
     @UseGuards(JwtAuthGuard, PolicyGuard)
     @UseFilters(HttpExceptionFilter)
     @CheckPolicies((ability: any) =>
-        ability.can(Operation.Read, 'NotificationRecord'),
+        ability.can(Operation.Read, 'NotificationLog'),
     )
     async todayRecords(@Request() req: any) {
         const res = await this.notificationRecord.countTodayRecord(req.user);
@@ -102,7 +102,7 @@ export class NotificationRecordController {
     @UseGuards(JwtAuthGuard, PolicyGuard)
     @UseFilters(HttpExceptionFilter)
     @CheckPolicies((ability: any) =>
-        ability.can(Operation.Read, 'NotificationRecord'),
+        ability.can(Operation.Read, 'NotificationLog'),
     )
     async monthlyRecord(@Request() req: any) {
         const res = await this.notificationRecord.countSentTotalMessage(
